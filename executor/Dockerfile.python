@@ -1,0 +1,21 @@
+FROM python:3.12-slim
+
+WORKDIR /code
+
+COPY requirements.txt /code
+RUN pip --no-cache-dir install -r /code/requirements.txt
+
+RUN apt-get update && apt-get install -y time \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY app .
+
+RUN useradd -m -u 1001 user \
+    && mkdir -p /home/user/tests \
+    && chmod -R 700 .
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+
+# for development
+# docker build -t executor -f Dockerfile.python .
+# docker run --rm --name Executor -p 8080:8080 -v $(pwd)/app:/code executor
