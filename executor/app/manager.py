@@ -8,6 +8,10 @@ import aiofiles
 from schema import File
 
 
+class FileNameError(Exception):
+    pass
+
+
 class FileManager:
     def __init__(self, directory: str, files: List[File]):
         self.base_dir = Path(directory)
@@ -21,7 +25,7 @@ class FileManager:
             file_path = self.session_dir / file.name
 
             if not file.name or '..' in file.name or file_path.parent.resolve() != self.session_dir:
-                raise ValueError(f"Invalid file name: {file.name}")
+                raise FileNameError(f"Invalid file name: {file.name}")
             
             async with aiofiles.open(file_path, mode='w') as f:
                 await f.write(file.content)
@@ -31,3 +35,4 @@ class FileManager:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.session_dir.exists():
             await asyncio.to_thread(shutil.rmtree, self.session_dir, ignore_errors=True)
+    

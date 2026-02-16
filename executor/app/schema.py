@@ -5,10 +5,14 @@ class File(BaseModel):
     name: str
     content: str
 
+class Flags(BaseModel):
+    timeout: bool
+    mem_out: bool
+
 class Metrics(BaseModel):
     time: str
-    memory: str
-    cpu_usage: str
+    phys_mem: str
+    virt_mem: str
 
 class Request(BaseModel):
     command: str
@@ -19,5 +23,5 @@ class Response(BaseModel):
     return_code: int
     stdout: str
     stderr: str
-    timeout: bool
+    flags: Flags
     metrics: Metrics
