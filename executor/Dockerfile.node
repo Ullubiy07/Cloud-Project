@@ -20,4 +20,4 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
 
 # for development
 # docker build -t executor-node -f Dockerfile.node .
-# docker run --rm --name NodeExecutor -p 8080:8080 -v $(pwd)/app:/code executor-node
+# docker run --rm --name NodeExecutor -p 8080:8080 -v $(pwd)/app:/code --memory="512m" executor-node

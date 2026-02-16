@@ -11,8 +11,8 @@ class Flags(BaseModel):
 
 class Metrics(BaseModel):
     time: str
-    memory: str
-    cpu_usage: str
+    phys_mem: str
+    virt_mem: str
 
 class Request(BaseModel):
     command: str

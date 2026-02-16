@@ -5,8 +5,8 @@ from asyncio.subprocess import PIPE
 import resource
 
 from schema import Request, Response
-from manager import FileManager
-from limits import watch, parseStats
+from manager import FileManager, FileNameError
+from resources import ProcessTracker, parseTime
 
 CPU_TIME_LIMIT = 5
 
@@ -27,6 +27,7 @@ async def scalar_html():
         dark_mode=True
     )
 
+
 def set_limits():
     resource.setrlimit(resource.RLIMIT_CPU, (CPU_TIME_LIMIT, CPU_TIME_LIMIT))
 
@@ -36,13 +37,16 @@ async def run_code(request: Request):
 
     return_code = 1
     stdout, stderr = b"", b""
-    time, memory, cpu_usage = "", "", ""
-    timeout, mem_out = False, False
+    time = ""
+    timeout = False
     TEST_PATH = "/home/user/tests"
+
+    watcher = ProcessTracker()
+
     try:
         async with FileManager(directory=TEST_PATH, files=request.files) as manager:
             process = await asyncio.create_subprocess_exec(
-                "/usr/bin/time", "-f", "==STATS== %e %M %P", *(request.command.split()),
+                "/usr/bin/time", "-f", "STATS=%e", *(request.command.split()),
                 user="user",
                 stdin=PIPE,
                 stdout=PIPE,
@@ -50,37 +54,49 @@ async def run_code(request: Request):
                 cwd=manager.session_dir,
                 preexec_fn=set_limits
             )
-            context = dict()
-            asyncio.create_task(watch(process, context))
+            
+            watcher = ProcessTracker(process)
+            watch_task = asyncio.create_task(watcher.watch())
 
-            stdout, stderr = await process.communicate(input=request.stdin.encode())
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(input=request.stdin.encode()), 
+                timeout=CPU_TIME_LIMIT
+            )
             return_code = process.returncode
-        
-            time, _, cpu_usage, stderr = parseStats(stderr.decode())
-            memory = context["memory"] + "M"
-            mem_out = context["mem_out"]
+            time, stderr = parseTime(stderr.decode())
             stdout = stdout.decode()
 
-    except ValueError as e:
+    except asyncio.TimeoutError:
+        timeout = True
+        stderr = "Time limit exceeded"
+        time = "5.00"
+    except FileNameError as e:
         stderr = str(e)
     except Exception as e:
         stderr = "Internal server error"
         print(e)
+    finally:
+        watcher.killProcess()
+        if watch_task and not watch_task.done():
+            watch_task.cancel()
 
+    if watcher.mem_out:
+        stderr = "Memory limit exceeded"
     if return_code == 137:
         timeout = True
-
+        stderr = "Time limit exceeded"
+        
     return {
         "return_code": return_code,
         "stdout": stdout,
         "stderr": stderr,
         "flags": {
             "timeout": timeout,
-            "mem_out": mem_out,
+            "mem_out": watcher.mem_out,
         },
         "metrics": {
-            "time": f"{time}",
-            "memory": f"{memory}",
-            "cpu_usage": cpu_usage
+            "time": f"{time}s",
+            "phys_mem": f"{watcher.phys_mem}M",
+            "virt_mem": f"{watcher.virt_mem}M"
         }
     }

@@ -18,4 +18,4 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
 
 # for development
 # docker build -t executor -f Dockerfile.python .
-# docker run --rm --name PythonExecutor -p 8080:8080 -v $(pwd)/app:/code executor
+# docker run --rm --name PythonExecutor -p 8080:8080 -v $(pwd)/app:/code --memory="512m" executor
