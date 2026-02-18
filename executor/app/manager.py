@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 from typing import List
 import aiofiles
+import os
 
 from schema import File
 
@@ -13,14 +14,15 @@ class FileNameError(Exception):
 
 
 class FileManager:
-    def __init__(self, directory: str, files: List[File]):
+    def __init__(self, directory: str, files: List[File], language: str):
         self.base_dir = Path(directory)
         self.files = files
         self.session_dir = (self.base_dir / str(uuid.uuid4())).resolve()
+        self.lang = language
 
     async def __aenter__(self):
         self.session_dir.mkdir(parents=True, exist_ok=True)
-        
+
         for file in self.files:
             file_path = self.session_dir / file.name
 
@@ -30,6 +32,14 @@ class FileManager:
             async with aiofiles.open(file_path, mode='w') as f:
                 await f.write(file.content)
 
+        if self.lang == "golang":
+            cache = Path("/tmp/.go_cache")
+            cache.mkdir(exist_ok=True)
+            os.environ["GOCACHE"] = str(cache)
+            os.system(f"chown user {cache}")
+
+        os.system(f"chown user {self.session_dir}")
+        
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):

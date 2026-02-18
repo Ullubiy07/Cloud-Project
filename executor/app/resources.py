@@ -1,7 +1,7 @@
 import psutil
 import asyncio
 
-MEM_LIMIT = 64
+from config import MEM_LIMIT
 
 
 class ProcessTracker:
