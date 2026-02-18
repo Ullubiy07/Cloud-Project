@@ -15,7 +15,7 @@ class Metrics(BaseModel):
     virt_mem: str
 
 class Request(BaseModel):
-    command: str
+    language: str
     files: List[File]
     stdin: str
     

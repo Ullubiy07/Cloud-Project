@@ -7,7 +7,7 @@ RUN pip --no-cache-dir install -r /code/requirements.txt
 
 RUN apt-get update && apt-get install -y \
     time \
-    nodejs \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 COPY app .
@@ -19,5 +19,5 @@ RUN useradd -m -u 1001 user \
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 # for development
-# docker build -t node -f Dockerfile.node .
-# docker run --rm --name Executor -p 8080:8080 -v $(pwd)/app:/code --memory="512m" node
+# docker build -t cxx -f Dockerfile.cxx .
+# docker run --rm --name Executor -p 8080:8080 -v $(pwd)/app:/code --memory="512m" cxx

@@ -2,13 +2,11 @@ from fastapi import FastAPI
 from scalar_fastapi import get_scalar_api_reference, Layout
 import asyncio
 from asyncio.subprocess import PIPE
-import resource
 
 from schema import Request, Response
 from manager import FileManager, FileNameError
 from resources import ProcessTracker, parseTime
-
-CPU_TIME_LIMIT = 5
+from config import commands, set_limits, CPU_TIME_LIMIT
 
 
 app = FastAPI(
@@ -18,6 +16,7 @@ app = FastAPI(
     title="Executor"
 )
 
+
 @app.get("/scalar", include_in_schema=False)
 async def scalar_html():
     return get_scalar_api_reference(
@@ -26,10 +25,6 @@ async def scalar_html():
         layout=Layout.MODERN,
         dark_mode=True
     )
-
-
-def set_limits():
-    resource.setrlimit(resource.RLIMIT_CPU, (CPU_TIME_LIMIT, CPU_TIME_LIMIT))
 
 
 @app.post("/run", response_model=Response)
@@ -42,11 +37,13 @@ async def run_code(request: Request):
     TEST_PATH = "/home/user/tests"
 
     watcher = ProcessTracker()
+    watch_task = None
 
     try:
-        async with FileManager(directory=TEST_PATH, files=request.files) as manager:
+        async with FileManager(directory=TEST_PATH, files=request.files, language=request.language) as manager:
             process = await asyncio.create_subprocess_exec(
-                "/usr/bin/time", "-f", "STATS=%e", *(request.command.split()),
+                "/usr/bin/time", "-f", "STATS=%e",
+                "/bin/bash", "-c", commands[request.language],
                 user="user",
                 stdin=PIPE,
                 stdout=PIPE,
