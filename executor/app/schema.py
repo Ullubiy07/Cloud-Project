@@ -12,7 +12,6 @@ class Flags(BaseModel):
 class Metrics(BaseModel):
     time: str
     phys_mem: str
-    virt_mem: str
 
 class Request(BaseModel):
     language: str
