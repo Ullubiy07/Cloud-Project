@@ -1,26 +1,18 @@
-import asyncio
 import uuid
-import shutil
 from pathlib import Path
-from typing import List
-import aiofiles
 import os
-
-from schema import File
-
 
 class FileNameError(Exception):
     pass
 
-
 class FileManager:
-    def __init__(self, directory: str, files: List[File], language: str):
+    def __init__(self, directory: str, files, language: str):
         self.base_dir = Path(directory)
         self.files = files
         self.session_dir = (self.base_dir / str(uuid.uuid4())).resolve()
         self.lang = language
 
-    async def __aenter__(self):
+    def __enter__(self):
         self.session_dir.mkdir(parents=True, exist_ok=True)
 
         for file in self.files:
@@ -29,20 +21,21 @@ class FileManager:
             if not file.name or '..' in file.name or file_path.parent.resolve() != self.session_dir:
                 raise FileNameError(f"Invalid file name: {file.name}")
             
-            async with aiofiles.open(file_path, mode='w') as f:
-                await f.write(file.content)
+            with open(file_path, mode='w') as f:
+                f.write(file.content)
 
         if self.lang == "golang":
             cache = Path("/tmp/.go_cache")
             cache.mkdir(exist_ok=True)
             os.environ["GOCACHE"] = str(cache)
             os.system(f"chown user {cache}")
-
-        os.system(f"chown user {self.session_dir}")
+        
+        os.chown(self.session_dir, 1001, -1)
+        # os.system(f"chown user {self.session_dir}")
         
         return self
     
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.session_dir.exists():
-            await asyncio.to_thread(shutil.rmtree, self.session_dir, ignore_errors=True)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        import shutil
+        shutil.rmtree(self.session_dir)
     
