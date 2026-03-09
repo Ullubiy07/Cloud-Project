@@ -1,11 +1,37 @@
+import resource
+
 TIME_LIMIT = 5
 MEM_LIMIT = 256
 
 TEST_PATH = "/home/user/tests"
 
-commands = {
-    "python": "python main.py",
-    "c++": "g++ main.cpp -o main; ./main",
-    "javascript": "node main.js",
-    "go": "go build -o main main.go; ./main"
+build = {
+    "python": "",
+    "c++": "g++ *.cpp -o main",
+    "javascript": "",
+    "go": "go build -ldflags='-s -w' -gcflags='all=-N -l' -o main *.go"
 }
+
+run = {
+    "python": "python *.py",
+    "c++": "./main",
+    "javascript": "node *.js",
+    "go": "./main"
+}
+
+def set_cpu_limit():
+    resource.setrlimit(resource.RLIMIT_CPU, (TIME_LIMIT, TIME_LIMIT))
+
+
+def build_cmd(lang, stats):
+    cmd = ""
+    if build[lang]:
+        cmd = f"/usr/bin/time -f '%e %M' -o {stats} {build[lang]}"
+    return ["/bin/bash", "-c", cmd]
+
+def run_cmd(lang, stats, entry_file):
+    tmp = run[lang]
+    if lang in ["python", "javascript"]:
+        tmp += " " + entry_file
+    cmd = f"/usr/bin/time -f '%e %M' -o {stats} {tmp}"
+    return ["/bin/bash", "-c", cmd]

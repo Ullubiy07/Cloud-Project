@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 import subprocess
-import resource
 
 from schema import Request, Response
 from manager import FileManager, FileNameError
@@ -14,10 +13,6 @@ app = FastAPI(
     # openapi_url=None
 )
 
-def set_cpu_limit():
-    resource.setrlimit(resource.RLIMIT_CPU, (TIME_LIMIT, TIME_LIMIT))
-
-
 @app.post("/run", response_model=Response)
 def run_code(request: Request):
 
@@ -25,9 +20,21 @@ def run_code(request: Request):
 
     try:
         with FileManager(directory=TEST_PATH, data=res.metrics, files=request.files, language=request.language) as manager:
-            process = subprocess.run(
-                ["/usr/bin/time", "-f", "%e %M", "-o", manager.stats,
-                "/bin/bash", "-c", commands[request.language]],
+            
+            build_process = subprocess.run(
+                build_cmd(request.language, manager.build_stats),
+                capture_output=True,
+                text=True,
+                timeout=TIME_LIMIT,
+                preexec_fn=set_cpu_limit,
+                cwd=manager.base_dir
+            )
+            if build_process.returncode != 0:
+                res.set_output(build_process, "build")
+                return res
+
+            run_process = subprocess.run(
+                run_cmd(request.language, manager.run_stats, request.entry_file),
                 input=request.stdin,
                 capture_output=True,
                 text=True,
@@ -35,7 +42,7 @@ def run_code(request: Request):
                 preexec_fn=set_cpu_limit,
                 cwd=manager.base_dir
             )
-            res.set_output(process)
+            res.set_output(run_process, "run")
 
     except subprocess.TimeoutExpired as e:
         res.time_limit(e)
@@ -44,10 +51,5 @@ def run_code(request: Request):
     except Exception as e:
         res.set_error("Internal server error", 124)
         print(e)
-    
-    if res.rc == 137 or res.rc == 127:
-        res.memory_limit()
-    if res.rc == 143:
-        res.time_limit()
 
     return res

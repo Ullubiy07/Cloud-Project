@@ -19,7 +19,7 @@ RUN useradd -m -u 1001 user \
 
 USER user
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--no-access-log"]
 
 # for development
 # docker build -t js -f images/Dockerfile.js .
