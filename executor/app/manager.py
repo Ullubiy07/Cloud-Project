@@ -1,9 +1,12 @@
 import uuid
 from pathlib import Path
 from typing import List
+from subprocess import TimeoutExpired
+from contextlib import contextmanager
 import os
 
-from schema import File, Metrics
+
+from schema import File, Metrics, Response
 
 
 class FileNameError(Exception):
@@ -54,3 +57,15 @@ class FileManager:
         self.data.build_time, self.data.build_memory = self.parse_stats(self.build_stats)
         self.data.run_time, self.data.run_memory = self.parse_stats(self.run_stats)
         os.system('rm -rf /home/user/tests/*')
+
+
+@contextmanager
+def ExecManager(type: str, res: Response):
+    try:
+        yield
+    except TimeoutExpired as e:
+        res.time_limit(type, e)
+    except FileNameError as e:
+        res.set_error(str(e), type, 1)
+    except Exception as e:
+        res.set_error("Internal server error", type, 124)

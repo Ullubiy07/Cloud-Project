@@ -1,6 +1,7 @@
 import resource
 
-TIME_LIMIT = 5
+RUN_TIME_LIMIT = 5
+BUILD_TIME_LIMIT = 15
 MEM_LIMIT = 256
 
 TEST_PATH = "/home/user/tests"
@@ -20,7 +21,7 @@ run = {
 }
 
 def set_cpu_limit():
-    resource.setrlimit(resource.RLIMIT_CPU, (TIME_LIMIT, TIME_LIMIT))
+    resource.setrlimit(resource.RLIMIT_CPU, (RUN_TIME_LIMIT, RUN_TIME_LIMIT))
 
 
 def build_cmd(lang, stats):

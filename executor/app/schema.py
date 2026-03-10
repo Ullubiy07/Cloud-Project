@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List
 
-from config import TIME_LIMIT
+from config import RUN_TIME_LIMIT
 from subprocess import CompletedProcess
 
 
@@ -34,33 +34,37 @@ class Response(BaseModel):
     flags: Flags = Flags()
     metrics: Metrics = Metrics()
 
-    def set_error(self, message: str, rc: int):
+    def set_flag(self, type: str):
+        if self.rc != 0:
+            if type == "run":
+                self.flags.run_error = True
+            else:
+                self.flags.build_error = True
+
+    def set_error(self, message: str, type: str, rc: int):
         self.stderr = message
         self.rc = rc
+        self.set_flag(type)
 
-    def time_limit(self, error=None):
+    def time_limit(self, type: str, error=None):
         self.flags.timeout = True
-        self.metrics.run_time = f"{TIME_LIMIT:.2f} s"
-        self.set_error("Time limit exceeded", 124)
+        # self.metrics.run_time = f"{TIME_LIMIT:.2f} s"
+        self.set_error("Time limit exceeded", type, 124)
         if error:
             self.stdout = error.stdout.decode() if error.stdout else ""
     
-    def memory_limit(self):
+    def memory_limit(self, type: str):
         self.flags.mem_out = True
-        self.set_error("Memory limit exceeded", 137)
+        self.set_error("Memory limit exceeded", type, 137)
 
     def set_output(self, process: CompletedProcess, type: str):
         self.rc = process.returncode
         self.stderr = process.stderr
         self.stdout = process.stdout
 
-        if self.rc != 0:
-            match type:
-                case "run":
-                    self.flags.run_error = True
-                case "build":
-                    self.flags.build_error = True
+        self.set_flag(type)
+
         if self.rc == 137:
-            self.memory_limit()
+            self.memory_limit(type)
         if self.rc == 143:
-            self.time_limit()
+            self.time_limit(type)

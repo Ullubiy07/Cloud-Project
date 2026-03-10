@@ -19,5 +19,5 @@ RUN useradd -m -u 1001 user \
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--no-access-log"]
 
 # for development
-# docker build -t go -f images/Dockerfile.go .
+# docker build -t go -f images/go.Dockerfile .
 # docker run --rm --name Executor -p 8080:8080 -v $(pwd)/app:/code --memory="512m" go
