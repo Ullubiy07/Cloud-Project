@@ -1,6 +1,6 @@
 import { Box, Text, useColorMode } from "@chakra-ui/react";
 
-const Input = () => {
+const Input = ({ stdin, onStdin }) => {
     const { colorMode } = useColorMode();
 
     return (
@@ -13,6 +13,8 @@ const Input = () => {
         >
             <Text mb={2} color="gray.500">Input</Text>
             <textarea
+                value={stdin}
+                onChange={(e) => onStdin(e.target.value)}
                 style={{
                     width: "100%",
                     background: "transparent",
