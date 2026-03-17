@@ -36,6 +36,11 @@ config = {
         "build": "g++ *.cpp -o main",
         "run": "./main"
     },
+    "c": {
+        "type": "compile",
+        "build": "gcc *.c -o main",
+        "run": "./main"
+    },
     "go": {
         "type": "compile",
         "build": "go build -ldflags='-s -w' -gcflags='all=-N -l' -o main *.go",
