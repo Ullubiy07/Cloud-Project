@@ -45,6 +45,11 @@ config = {
         "type": "compile",
         "build": """bash -c 'for f in *.asm; do nasm -f elf64 "$f" -o "${f%.asm}.o"; done && gcc -c /include/macro.c -o __macro__.o && gcc -m64 -no-pie *.o -o main'""",
         "run": "./main"
+    },
+    "sql": {
+        "type": "script",
+        "build": "",
+        "run": "sqlite3 ':memory:'"
     }
 }
 
@@ -62,6 +67,6 @@ def run_cmd(lang, stats_file, entry_file):
     time_wrap = f"/usr/bin/time -f '%e %M' -o {stats_file}"
     cmd = f"{time_wrap} {config[lang]['run']}"
     if config[lang]["type"] == "script":
-        cmd += " " + entry_file
+        cmd += (" " if lang != "sql" else " < ") + entry_file
     return ["/bin/bash", "-c", cmd]
     
