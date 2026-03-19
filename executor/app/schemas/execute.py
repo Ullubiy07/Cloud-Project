@@ -1,13 +1,14 @@
-from pydantic import BaseModel, root_validator
-from typing import List, Union
-import json
+from pydantic import BaseModel
+from typing import List
 
-from subprocess import CompletedProcess
 from config import OUTPUT_LIMIT
+from subprocess import CompletedProcess
+
 
 class File(BaseModel):
     name: str
     content: str
+
 
 class Flags(BaseModel):
     timeout: bool = False
@@ -16,11 +17,13 @@ class Flags(BaseModel):
     build_error: bool = False
     run_error: bool = False
 
+
 class Metrics(BaseModel):
     build_time: str = "0.00 s"
     build_memory: str = "0.00 Mb"
     run_time: str = "0.00 s"
     run_memory: str = "0.00 Mb"
+
 
 class RunRequest(BaseModel):
     language: str
@@ -28,19 +31,6 @@ class RunRequest(BaseModel):
     files: List[File]
     stdin: str
 
-class ScanRequest(BaseModel):
-    language: str
-    files: List[File]
-
-class Requests(BaseModel):
-    handle: str
-    body: Union[RunRequest, ScanRequest]
-
-    @root_validator(pre=True)
-    def parse_body_string(data):
-        if isinstance(data, str):
-            return json.loads(data)
-        return data
 
 class RunResponse(BaseModel):
     rc: int = 1
@@ -90,23 +80,3 @@ class RunResponse(BaseModel):
             self.memory_limit(type)
         if self.rc == 143:
             self.time_limit(type)
-
-
-class Message(BaseModel):
-    message_id: str
-    md5_of_body: str
-    body: Requests
-    attributes: dict
-    message_attributes: dict
-    md5_of_message_attributes: str
-
-class Details(BaseModel):
-    queue_id: str
-    message: Message
-
-class MessageItem(BaseModel):
-    event_metadata: dict
-    details: Details
-
-class CloudTriggerRequest(BaseModel):
-    messages: List[MessageItem]

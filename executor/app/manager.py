@@ -4,7 +4,7 @@ from typing import List
 from subprocess import TimeoutExpired
 import os
 
-from schema import File, Metrics, RunResponse
+from schemas.execute import File, Metrics, RunResponse
 from config import TEST_PATH, logger
 
 
