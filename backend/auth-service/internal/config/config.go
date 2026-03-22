@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -17,12 +18,12 @@ func Load() (*Config, error) {
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		return nil, os.ErrNotExist
+		return nil, fmt.Errorf("DATABASE_URL environment variable is required")
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
-		return nil, os.ErrNotExist
+		return nil, fmt.Errorf("JWT_SECRET environment variable is required")
 	}
 
 	port := os.Getenv("PORT")

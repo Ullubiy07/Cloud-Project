@@ -52,7 +52,7 @@ func (s *TokenService) ValidateToken(tokenString string) (*Claims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return s.secretKey, nil
-	})
+	}, jwt.WithIssuer(s.issuer), jwt.WithValidMethods([]string{"HS256"}))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)

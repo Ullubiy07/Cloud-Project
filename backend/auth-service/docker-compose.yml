@@ -5,7 +5,7 @@ services:
       - "3000:3000"
     environment:
       - DATABASE_URL=postgres://user:password@db:5432/auth_db
-      - JWT_SECRET=dev_secret_key_change_me
+      - JWT_SECRET=${JWT_SECRET:-dev_secret_key_change_me}
       - PORT=3000
     depends_on:
       db:

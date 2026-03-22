@@ -13,6 +13,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var (
+	ErrDuplicateUser = errors.New("email or username already exists")
+	ErrUserNotFound  = errors.New("user not found")
+)
+
 type UserStore struct {
 	db *pgxpool.Pool
 }
@@ -30,7 +35,7 @@ func (s *UserStore) CreateUser(ctx context.Context, user *model.User) error {
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return fmt.Errorf("email or username already exists")
+			return ErrDuplicateUser
 		}
 		return fmt.Errorf("failed to create user: %w", err)
 	}
@@ -49,7 +54,7 @@ func (s *UserStore) GetUserByEmail(ctx context.Context, email string) (*model.Us
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user not found")
+			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -68,7 +73,7 @@ func (s *UserStore) GetUserByUsername(ctx context.Context, username string) (*mo
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user not found")
+			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -87,7 +92,7 @@ func (s *UserStore) GetUserByID(ctx context.Context, id uuid.UUID) (*model.User,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user not found")
+			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}

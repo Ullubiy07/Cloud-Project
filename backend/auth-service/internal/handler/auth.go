@@ -2,12 +2,14 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/mail"
 	"time"
 
 	"auth/internal/model"
 	"auth/internal/store"
+	"auth/internal/store/pgstore"
 	"auth/internal/token"
 
 	"github.com/google/uuid"
@@ -84,7 +86,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.store.CreateUser(r.Context(), user); err != nil {
-		if err.Error() == "email or username already exists" {
+		if errors.Is(err, pgstore.ErrDuplicateUser) {
 			h.respondWithError(w, http.StatusConflict, err.Error())
 		} else {
 			h.respondWithError(w, http.StatusInternalServerError, "Internal server error")
@@ -92,6 +94,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(StandardResponse{
 		Status:  "ok",
@@ -100,6 +103,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) respondWithError(w http.ResponseWriter, code int, message string) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(StandardResponse{
 		Status:  "error",
