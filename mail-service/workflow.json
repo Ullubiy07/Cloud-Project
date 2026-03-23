@@ -1,0 +1,64 @@
+{
+  "name": "Mail Service",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "password-reset",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "4d74a127-62b1-49ac-8a48-c0c50b379064",
+      "name": "Webhook",
+      "webhookId": "aff0f1cb-772f-4a12-8e98-d161433a3f1b"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.email }}",
+        "subject": "password-reset",
+        "message": "=<p>Привет!</p> <a href=\"{{ $json.body.reset_link }}\" style=\"background:#4F46E5;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;\"> Сменить пароль</a>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [208, 0],
+      "id": "fa34a5c4-f0ea-4f7e-80d6-301e5f4a30b2",
+      "name": "Send a message",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OAs4fD8IvlX7PBlg",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "{\"status\": \"ok\"}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [416, 0],
+      "id": "52e70de6-2a62-4755-a958-8e29b4e9f38f",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Send a message", "type": "main", "index": 0 }]]
+    },
+    "Send a message": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
