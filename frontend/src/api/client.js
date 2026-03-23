@@ -1,0 +1,44 @@
+const EXEC_URL = "/api";
+
+function authHeader() {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function apiLogin(username, password) {
+    const res = await fetch(`${EXEC_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+    });
+    if (!res.ok) throw new Error("Login failed");
+    return res.json();
+}
+
+export async function apiRegister(username, email, password) {
+    const res = await fetch(`${EXEC_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+    });
+    if (!res.ok) throw new Error("Register failed");
+    return res.json();
+}
+
+export async function apiRun(language, entryFile, files, stdin = "") {
+    const res = await fetch(`${EXEC_URL}/run`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...authHeader(),
+        },
+        body: JSON.stringify({
+            language,
+            entry_file: entryFile,
+            files,
+            stdin,
+        }),
+    });
+    if (!res.ok) throw new Error("Execution failed");
+    return res.json();
+}
