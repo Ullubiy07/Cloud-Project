@@ -130,7 +130,7 @@ func (h *RunHandler) GetRunRequests(w http.ResponseWriter, r *http.Request) {
 
 	requests, err := h.storage.GetRunRequestsByUser(r.Context(), claims.UserID)
 	if err != nil {
-		slog.Error("failed to fetch run requests: %v", err)
+		slog.Error("failed to fetch run requests", slog.Any("error", err))
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to fetch requests")
 		return
 	}
@@ -160,7 +160,7 @@ func (h *RunHandler) GetRunRequest(w http.ResponseWriter, r *http.Request) {
 
 	request, err := h.storage.GetRunRequestByID(r.Context(), reqID, claims.UserID)
 	if err != nil {
-		slog.Error("failed to fetch single request %s: %v", idParam, err)
+		slog.Error("failed to fetch single request", slog.String("id", idParam), slog.Any("error", err))
 		h.respondWithError(w, http.StatusNotFound, "Request not found")
 		return
 	}
@@ -195,7 +195,7 @@ func (h *RunHandler) UpdateExecutionStatus(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := h.storage.UpdateRunRequestStatus(r.Context(), reqID, payload); err != nil {
-		slog.Error("failed to update run request status for %s: %v", idParam, err)
+		slog.Error("failed to update run request status", slog.String("id", idParam), slog.Any("error", err))
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to update status")
 		return
 	}
