@@ -86,14 +86,24 @@ func (h *RunHandler) RunRequest(w http.ResponseWriter, r *http.Request) {
 		Status:    "queued",
 	}
 
-	if err := h.queue.SendMessage(r.Context(), runReq.ID.String()); err != nil {
-		slog.Error("failed to enqueue run request", slog.Any("error", err))
-		h.respondWithError(w, http.StatusInternalServerError, "Failed to process request")
-	}
-
 	if err := h.storage.CreateRunRequest(r.Context(), runReq); err != nil {
 		slog.Error("failed to store run request", slog.Any("error", err))
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to process request")
+		return
+	}
+
+	if err := h.queue.SendMessage(r.Context(), runReq.ID.String()); err != nil {
+		slog.Error("failed to enqueue run request", slog.Any("error", err))
+
+		errorMsg := "System error: failed to enqueue task"
+		if updateErr := h.storage.UpdateRunRequestStatus(r.Context(), runReq.ID, model.UpdateExecutionStatusPayload{
+			Status:       "failed",
+			ErrorMessage: &errorMsg,
+		}); updateErr != nil {
+			slog.Error("failed to update status to failed after enqueue error", slog.Any("error", updateErr))
+		}
+
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to enqueue request for execution")
 		return
 	}
 
