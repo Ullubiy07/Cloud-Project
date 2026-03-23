@@ -9,6 +9,7 @@ import (
 
 	"backend/internal/config"
 	"backend/internal/handler"
+	"backend/internal/queue"
 	"backend/internal/storage/postgres"
 	"backend/internal/token"
 
@@ -42,9 +43,14 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, fmt.Errorf("could not run migrations: %w", err)
 	}
 
+	queueService, err := queue.New(ctx, "code_execution_queue")
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize queue service: %w", err)
+	}
+
 	storageLayer := postgres.New(dbPool)
 	tokenService := token.NewTokenService(cfg.JWTSecret, "auth-service", 24*time.Hour)
-	runHandler := handler.NewRunHandler(cfg, storageLayer, tokenService)
+	runHandler := handler.NewRunHandler(cfg, storageLayer, queueService, tokenService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

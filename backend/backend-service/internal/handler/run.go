@@ -8,6 +8,7 @@ import (
 
 	"backend/internal/config"
 	"backend/internal/model"
+	"backend/internal/queue"
 	"backend/internal/storage"
 	"backend/internal/token"
 
@@ -18,13 +19,15 @@ import (
 type RunHandler struct {
 	config       *config.Config
 	storage      storage.Storage
+	queue        *queue.Service
 	tokenService *token.TokenService
 }
 
-func NewRunHandler(cfg *config.Config, store storage.Storage, ts *token.TokenService) *RunHandler {
+func NewRunHandler(cfg *config.Config, store storage.Storage, qs *queue.Service, ts *token.TokenService) *RunHandler {
 	return &RunHandler{
 		config:       cfg,
 		storage:      store,
+		queue:        qs,
 		tokenService: ts,
 	}
 }
@@ -83,15 +86,18 @@ func (h *RunHandler) RunRequest(w http.ResponseWriter, r *http.Request) {
 		Status:    "queued",
 	}
 
-	// TODO: enqueue for execution
+	if err := h.queue.SendMessage(r.Context(), runReq.ID.String()); err != nil {
+		slog.Error("failed to enqueue run request", slog.Any("error", err))
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to process request")
+	}
 
 	if err := h.storage.CreateRunRequest(r.Context(), runReq); err != nil {
-		slog.Error("failed to store run request: %v", err)
+		slog.Error("failed to store run request", slog.Any("error", err))
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to process request")
 		return
 	}
 
-	slog.Error("run request created with ID: %s for User: %s", runReq.ID.String(), claims.UserID.String())
+	slog.Info("run request created", slog.String("id", runReq.ID.String()), slog.String("user", claims.UserID.String()))
 
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(StandardResponse{
@@ -121,7 +127,7 @@ func (h *RunHandler) GetRunRequests(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(StandardResponse{
 		Status:  "ok",
-		Message: "Success",
+		Message: "success",
 		Data:    requests,
 	})
 }
@@ -151,7 +157,7 @@ func (h *RunHandler) GetRunRequest(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(StandardResponse{
 		Status:  "ok",
-		Message: "Success",
+		Message: "success",
 		Data:    request,
 	})
 }

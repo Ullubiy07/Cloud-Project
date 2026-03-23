@@ -24,6 +24,9 @@ services:
       - DATABASE_URL=postgres://user:password@db:5432/backend_db?sslmode=disable
       - JWT_SECRET=${JWT_SECRET:-dev_secret_key}
       - PORT=3001
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=ru-central1
     depends_on:
       db:
         condition: service_healthy
