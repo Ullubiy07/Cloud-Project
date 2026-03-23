@@ -1,4 +1,4 @@
-package pgstore
+package postgres
 
 import (
 	"context"
@@ -18,15 +18,15 @@ var (
 	ErrUserNotFound  = errors.New("user not found")
 )
 
-type UserStore struct {
+type UserStorage struct {
 	db *pgxpool.Pool
 }
 
-func New(db *pgxpool.Pool) *UserStore {
-	return &UserStore{db: db}
+func New(db *pgxpool.Pool) *UserStorage {
+	return &UserStorage{db: db}
 }
 
-func (s *UserStore) CreateUser(ctx context.Context, user *model.User) error {
+func (s *UserStorage) CreateUser(ctx context.Context, user *model.User) error {
 	query := `
 		INSERT INTO users (id, username, email, password_hash, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -42,7 +42,7 @@ func (s *UserStore) CreateUser(ctx context.Context, user *model.User) error {
 	return nil
 }
 
-func (s *UserStore) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+func (s *UserStorage) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	query := `
 		SELECT id, username, email, password_hash, created_at, updated_at
 		FROM users
@@ -61,7 +61,7 @@ func (s *UserStore) GetUserByEmail(ctx context.Context, email string) (*model.Us
 	return &user, nil
 }
 
-func (s *UserStore) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
+func (s *UserStorage) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
 	query := `
 		SELECT id, username, email, password_hash, created_at, updated_at
 		FROM users
@@ -80,7 +80,7 @@ func (s *UserStore) GetUserByUsername(ctx context.Context, username string) (*mo
 	return &user, nil
 }
 
-func (s *UserStore) GetUserByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
+func (s *UserStorage) GetUserByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
 	query := `
 		SELECT id, username, email, password_hash, created_at, updated_at
 		FROM users
@@ -99,7 +99,7 @@ func (s *UserStore) GetUserByID(ctx context.Context, id uuid.UUID) (*model.User,
 	return &user, nil
 }
 
-func (s *UserStore) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
+func (s *UserStorage) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
 	query := `
 		UPDATE users
 		SET password_hash = $1, updated_at = NOW()

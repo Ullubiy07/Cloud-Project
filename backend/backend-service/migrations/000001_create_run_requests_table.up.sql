@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS run_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    language VARCHAR(50) NOT NULL,
+    entry_file VARCHAR(255) NOT NULL,
+    files JSONB NOT NULL,
+    stdin TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

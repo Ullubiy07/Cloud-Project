@@ -6,9 +6,24 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/auth_db
+      - DATABASE_URL=postgres://user:password@db:5432/auth_db?sslmode=disable
       - JWT_SECRET=${JWT_SECRET:-dev_secret_key}
       - PORT=3000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+  backend-service:
+    build:
+      context: ./backend/backend-service
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgres://user:password@db:5432/backend_db?sslmode=disable
+      - JWT_SECRET=${JWT_SECRET:-dev_secret_key}
+      - PORT=3001
     depends_on:
       db:
         condition: service_healthy
@@ -19,14 +34,14 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=auth_db
+      - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/auth-service/migrations:/docker-entrypoint-initdb.d
+      - ./db-init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d auth_db"]
+      test: ["CMD-SHELL", "pg_isready -U user -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 5

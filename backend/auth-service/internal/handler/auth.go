@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"auth/internal/model"
-	"auth/internal/store"
-	"auth/internal/store/pgstore"
+	"auth/internal/storage"
+	"auth/internal/storage/postgres"
 	"auth/internal/token"
 
 	"github.com/google/uuid"
@@ -17,13 +17,13 @@ import (
 )
 
 type AuthHandler struct {
-	store        store.UserStore
+	storage        storage.UserStorage
 	tokenService *token.TokenService
 }
 
-func NewAuthHandler(store store.UserStore, tokenService *token.TokenService) *AuthHandler {
+func NewAuthHandler(storage storage.UserStorage, tokenService *token.TokenService) *AuthHandler {
 	return &AuthHandler{
-		store:        store,
+		storage:        storage,
 		tokenService: tokenService,
 	}
 }
@@ -85,8 +85,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    time.Now(),
 	}
 
-	if err := h.store.CreateUser(r.Context(), user); err != nil {
-		if errors.Is(err, pgstore.ErrDuplicateUser) {
+	if err := h.storage.CreateUser(r.Context(), user); err != nil {
+		if errors.Is(err, postgres.ErrDuplicateUser) {
 			h.respondWithError(w, http.StatusConflict, err.Error())
 		} else {
 			h.respondWithError(w, http.StatusInternalServerError, "Internal server error")
@@ -122,7 +122,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.store.GetUserByUsername(r.Context(), req.Username)
+	user, err := h.storage.GetUserByUsername(r.Context(), req.Username)
 	if err != nil {
 		h.respondWithError(w, http.StatusUnauthorized, "Invalid username or password")
 		return
@@ -176,7 +176,7 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.store.UpdatePassword(r.Context(), claims.UserID, string(hashedPassword)); err != nil {
+	if err := h.storage.UpdatePassword(r.Context(), claims.UserID, string(hashedPassword)); err != nil {
 		h.respondWithError(w, http.StatusInternalServerError, "Internal server error")
 		return
 	}
