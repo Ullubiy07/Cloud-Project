@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -69,7 +69,7 @@ func New(cfg *config.Config) (*App, error) {
 }
 
 func (a *App) Run() error {
-	log.Printf("Starting auth-service on %s", a.server.Addr)
+	slog.Info("Starting auth-service", slog.String("addr", a.server.Addr))
 	if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
 	}
@@ -77,13 +77,13 @@ func (a *App) Run() error {
 }
 
 func (a *App) Stop() {
-	log.Println("Stopping auth-service...")
+	slog.Info("Stopping auth-service...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := a.server.Shutdown(ctx); err != nil {
-		log.Printf("server shutdown error: %v", err)
+		slog.Error("server shutdown error", slog.Any("error", err))
 	}
 
 	if a.dbPool != nil {

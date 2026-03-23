@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,19 +11,25 @@ import (
 )
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		slog.Error("Failed to load config", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	application, err := app.New(cfg)
 	if err != nil {
-		log.Fatalf("Failed to initialize app: %v", err)
+		slog.Error("Failed to initialize app", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	go func() {
 		if err := application.Run(); err != nil {
-			log.Fatalf("Server error: %v", err)
+			slog.Error("Server error", slog.Any("error", err))
+			os.Exit(1)
 		}
 	}()
 
@@ -33,5 +39,5 @@ func main() {
 	<-stop
 
 	application.Stop()
-	log.Println("auth-service stopped")
+	slog.Info("auth-service stopped")
 }

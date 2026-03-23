@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -80,18 +80,18 @@ func (h *RunHandler) RunRequest(w http.ResponseWriter, r *http.Request) {
 		EntryFile: payload.EntryFile,
 		Files:     payload.Files,
 		Stdin:     payload.Stdin,
-		Status:    "pending",
+		Status:    "queued",
 	}
 
 	// TODO: enqueue for execution
 
 	if err := h.storage.CreateRunRequest(r.Context(), runReq); err != nil {
-		log.Printf("failed to store run request: %v", err)
+		slog.Error("failed to store run request: %v", err)
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to process request")
 		return
 	}
 
-	log.Printf("run request created with ID: %s for User: %s", runReq.ID.String(), claims.UserID.String())
+	slog.Error("run request created with ID: %s for User: %s", runReq.ID.String(), claims.UserID.String())
 
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(StandardResponse{
@@ -114,7 +114,7 @@ func (h *RunHandler) GetRunRequests(w http.ResponseWriter, r *http.Request) {
 
 	requests, err := h.storage.GetRunRequestsByUser(r.Context(), claims.UserID)
 	if err != nil {
-		log.Printf("failed to fetch run requests: %v", err)
+		slog.Error("failed to fetch run requests: %v", err)
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to fetch requests")
 		return
 	}
@@ -144,7 +144,7 @@ func (h *RunHandler) GetRunRequest(w http.ResponseWriter, r *http.Request) {
 
 	request, err := h.storage.GetRunRequestByID(r.Context(), reqID, claims.UserID)
 	if err != nil {
-		log.Printf("failed to fetch single request %s: %v", idParam, err)
+		slog.Error("failed to fetch single request %s: %v", idParam, err)
 		h.respondWithError(w, http.StatusNotFound, "Request not found")
 		return
 	}
@@ -179,7 +179,7 @@ func (h *RunHandler) UpdateExecutionStatus(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := h.storage.UpdateRunRequestStatus(r.Context(), reqID, payload); err != nil {
-		log.Printf("failed to update run request status for %s: %v", idParam, err)
+		slog.Error("failed to update run request status for %s: %v", idParam, err)
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to update status")
 		return
 	}
