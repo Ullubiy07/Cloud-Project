@@ -23,5 +23,5 @@ USER user
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 # for development
-# docker build -t js -f images/Dockerfile.js .
+# docker build -t js -f images/js.Dockerfile .
 # docker run --rm --name Executor -p 8080:8080 --memory="512m" --memory-swap="512m" js

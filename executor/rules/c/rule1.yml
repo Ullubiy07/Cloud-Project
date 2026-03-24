@@ -1,0 +1,9 @@
+id: c-os-exec
+language: c
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(system|popen|execl|execle|execlp|execv|execve|execvp|fork|vfork|clone)$
+message: "❌ КРИТИЧНО: Запуск системных команд или ветвление процессов запрещено."

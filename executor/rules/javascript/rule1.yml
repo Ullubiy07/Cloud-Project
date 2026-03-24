@@ -1,0 +1,15 @@
+id: js-critical-os-exec
+language: javascript
+severity: error
+rule:
+  any:
+    - pattern: eval($$$)
+    - pattern: new Function($$$)
+    - pattern: process.exit($$$)
+    - pattern: require('child_process')
+    - all:
+        - kind: call_expression
+        - has:
+            field: function
+            regex: ^(exec|spawn|fork|execSync)$
+message: "❌ КРИТИЧНО: Использование системных команд или опасных функций запрещено."

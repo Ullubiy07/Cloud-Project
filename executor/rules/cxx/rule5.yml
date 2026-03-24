@@ -1,0 +1,9 @@
+id: cpp-memory-manipulation
+language: cpp
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(mprotect|mmap|dlopen|dlsym|nvram_set)$
+message: "❌ КРИТИЧНО: Попытка манипуляции памятью или динамической загрузки библиотек."

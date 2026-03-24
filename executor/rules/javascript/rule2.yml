@@ -1,0 +1,12 @@
+id: js-network-block
+language: javascript
+severity: error
+rule:
+  any:
+    - pattern: require('http')
+    - pattern: require('https')
+    - pattern: require('net')
+    - pattern: require('tls')
+    - pattern: fetch($$$)
+    - pattern: axios($$$)
+message: "❌ ЗАПРЕЩЕНО: Сетевые запросы в песочнице недопустимы."

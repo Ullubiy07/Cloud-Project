@@ -1,0 +1,7 @@
+id: asm-no-control-regs
+language: html
+severity: error
+rule:
+  kind: text
+  regex: "(?i)mov\\s+cr[0-8]|mov\\s+dr[0-7]"
+message: "❌ КРИТИЧНО: Доступ к системным регистрам запрещен."

@@ -1,0 +1,6 @@
+id: js-env-access
+language: javascript
+severity: error
+rule:
+  pattern: process.env
+message: "❌ ЗАПРЕЩЕНО: Доступ к переменным окружения закрыт."

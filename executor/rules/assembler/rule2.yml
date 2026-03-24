@@ -1,0 +1,7 @@
+id: asm-no-interrupts
+language: html
+severity: error
+rule:
+  kind: text
+  regex: "(?i)int\\s+3|hlt|pause"
+message: "❌ ОШИБКА: Использование HLT или INT3 запрещено."

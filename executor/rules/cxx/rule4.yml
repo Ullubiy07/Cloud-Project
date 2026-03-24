@@ -1,0 +1,9 @@
+id: cpp-process-manipulation
+language: cpp
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(kill|raise|signal|sigaction|ptrace)$
+message: "❌ ЗАПРЕЩЕНО: Манипуляция сигналами и процессами."

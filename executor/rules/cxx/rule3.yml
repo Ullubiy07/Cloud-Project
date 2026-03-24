@@ -1,0 +1,9 @@
+id: cpp-fs-access
+language: cpp
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(remove|rename|fopen|open|creat|unlink|rmdir|chmod|chown|mount)$
+message: "❌ КРИТИЧНО: Прямой доступ к файловой системе запрещен."

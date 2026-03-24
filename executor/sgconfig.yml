@@ -1,2 +1,10 @@
 ruleDirs:
-  - rules
+  - rules/python
+  - rules/javascript
+  - rules/cxx
+  - rules/c
+  - rules/sql
+  - rules/assembler
+
+languageGlobs:
+  html: ['*.html', '*.sql', '*.asm', '*.s']
