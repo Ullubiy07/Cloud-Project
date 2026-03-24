@@ -1,0 +1,2 @@
+ALTER TABLE run_requests DROP COLUMN IF EXISTS flags;
+ALTER TABLE run_requests DROP COLUMN IF EXISTS metrics;

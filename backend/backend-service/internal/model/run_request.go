@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,19 +13,21 @@ type File struct {
 }
 
 type RunRequest struct {
-	ID           uuid.UUID `json:"id"`
-	UserID       uuid.UUID `json:"user_id"`
-	Language     string    `json:"language"`
-	EntryFile    string    `json:"entry_file"`
-	Files        []File    `json:"files"`
-	Stdin        string    `json:"stdin"`
-	Status       string    `json:"status"`
-	Stdout       *string   `json:"stdout,omitempty"`
-	Stderr       *string   `json:"stderr,omitempty"`
-	ExitCode     *int      `json:"exit_code,omitempty"`
-	ErrorMessage *string   `json:"error_message,omitempty"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID           uuid.UUID       `json:"id"`
+	UserID       uuid.UUID       `json:"user_id"`
+	Language     string          `json:"language"`
+	EntryFile    string          `json:"entry_file"`
+	Files        []File          `json:"files"`
+	Stdin        string          `json:"stdin"`
+	Status       string          `json:"status"`
+	Stdout       *string         `json:"stdout,omitempty"`
+	Stderr       *string         `json:"stderr,omitempty"`
+	ExitCode     *int            `json:"exit_code,omitempty"`
+	ErrorMessage *string         `json:"error_message,omitempty"`
+	Flags        json.RawMessage `json:"flags,omitempty"`
+	Metrics      json.RawMessage `json:"metrics,omitempty"`
+	CreatedAt    time.Time       `json:"created_at"`
+	UpdatedAt    time.Time       `json:"updated_at"`
 }
 
 type CreateRunRequestPayload struct {
@@ -35,9 +38,11 @@ type CreateRunRequestPayload struct {
 }
 
 type UpdateExecutionStatusPayload struct {
-	Status       string  `json:"status"`
-	Stdout       *string `json:"stdout,omitempty"`
-	Stderr       *string `json:"stderr,omitempty"`
-	ExitCode     *int    `json:"exit_code,omitempty"`
-	ErrorMessage *string `json:"error_message,omitempty"`
+	Status       string          `json:"status"`
+	Stdout       *string         `json:"stdout,omitempty"`
+	Stderr       *string         `json:"stderr,omitempty"`
+	ExitCode     *int            `json:"exit_code,omitempty"`
+	ErrorMessage *string         `json:"error_message,omitempty"`
+	Flags        json.RawMessage `json:"flags,omitempty"`
+	Metrics      json.RawMessage `json:"metrics,omitempty"`
 }

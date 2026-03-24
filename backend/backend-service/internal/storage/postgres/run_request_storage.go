@@ -49,7 +49,7 @@ func (s *Storage) CreateRunRequest(ctx context.Context, req *model.RunRequest) e
 
 func (s *Storage) GetRunRequestsByUser(ctx context.Context, userID uuid.UUID) ([]model.RunRequest, error) {
 	query := `
-		SELECT id, user_id, language, entry_file, files, stdin, status, stdout, stderr, exit_code, error_message, created_at, updated_at
+		SELECT id, user_id, language, entry_file, files, stdin, status, stdout, stderr, exit_code, error_message, flags, metrics, created_at, updated_at
 		FROM run_requests
 		WHERE user_id = $1
 		ORDER BY created_at DESC
@@ -66,7 +66,7 @@ func (s *Storage) GetRunRequestsByUser(ctx context.Context, userID uuid.UUID) ([
 		var filesJSON []byte
 		if err := rows.Scan(
 			&req.ID, &req.UserID, &req.Language, &req.EntryFile,
-			&filesJSON, &req.Stdin, &req.Status, &req.Stdout, &req.Stderr, &req.ExitCode, &req.ErrorMessage, &req.CreatedAt, &req.UpdatedAt,
+			&filesJSON, &req.Stdin, &req.Status, &req.Stdout, &req.Stderr, &req.ExitCode, &req.ErrorMessage, &req.Flags, &req.Metrics, &req.CreatedAt, &req.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
@@ -88,7 +88,7 @@ func (s *Storage) GetRunRequestsByUser(ctx context.Context, userID uuid.UUID) ([
 
 func (s *Storage) GetRunRequestByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*model.RunRequest, error) {
 	query := `
-		SELECT id, user_id, language, entry_file, files, stdin, status, stdout, stderr, exit_code, error_message, created_at, updated_at
+		SELECT id, user_id, language, entry_file, files, stdin, status, stdout, stderr, exit_code, error_message, flags, metrics, created_at, updated_at
 		FROM run_requests
 		WHERE id = $1 AND user_id = $2
 	`
@@ -96,7 +96,7 @@ func (s *Storage) GetRunRequestByID(ctx context.Context, id uuid.UUID, userID uu
 	var filesJSON []byte
 	err := s.db.QueryRow(ctx, query, id, userID).Scan(
 		&req.ID, &req.UserID, &req.Language, &req.EntryFile,
-		&filesJSON, &req.Stdin, &req.Status, &req.Stdout, &req.Stderr, &req.ExitCode, &req.ErrorMessage, &req.CreatedAt, &req.UpdatedAt,
+		&filesJSON, &req.Stdin, &req.Status, &req.Stdout, &req.Stderr, &req.ExitCode, &req.ErrorMessage, &req.Flags, &req.Metrics, &req.CreatedAt, &req.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("query single failed: %w", err)
@@ -110,10 +110,10 @@ func (s *Storage) GetRunRequestByID(ctx context.Context, id uuid.UUID, userID uu
 func (s *Storage) UpdateRunRequestStatus(ctx context.Context, id uuid.UUID, payload model.UpdateExecutionStatusPayload) error {
 	query := `
 		UPDATE run_requests
-		SET status = $1, stdout = $2, stderr = $3, exit_code = $4, error_message = $5, updated_at = CURRENT_TIMESTAMP
-		WHERE id = $6
+		SET status = $1, stdout = $2, stderr = $3, exit_code = $4, error_message = $5, flags = $6, metrics = $7, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $8
 	`
-	tag, err := s.db.Exec(ctx, query, payload.Status, payload.Stdout, payload.Stderr, payload.ExitCode, payload.ErrorMessage, id)
+	tag, err := s.db.Exec(ctx, query, payload.Status, payload.Stdout, payload.Stderr, payload.ExitCode, payload.ErrorMessage, payload.Flags, payload.Metrics, id)
 	if err != nil {
 		return fmt.Errorf("failed to update run request status: %w", err)
 	}

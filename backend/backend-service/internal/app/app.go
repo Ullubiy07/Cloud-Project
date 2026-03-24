@@ -43,7 +43,7 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, fmt.Errorf("could not run migrations: %w", err)
 	}
 
-	queueService, err := queue.New(ctx, "code_execution_queue")
+	queueService, err := queue.New(ctx, "test_queue")
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize queue service: %w", err)
 	}

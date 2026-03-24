@@ -1,0 +1,66 @@
+name: Deploy Cloud Project
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to deploy'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_DIRECTORY: /root/apps/cloud-project
+      ENV_FILE_PATH: /root/apps/cloud-project/.env
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+          
+      - name: Check if tag exists
+        run: |
+          git fetch --all --tags
+          if ! git tag | grep -q "^${{ github.event.inputs.tag }}$"; then
+            echo "error: Tag '${{ github.event.inputs.tag }}' not found"
+            exit 1
+          fi
+
+      - name: Deploy to VM
+        run: |
+          sudo apt-get update && sudo apt-get install -y ssh rsync
+          echo "$DEPLOY_SSH_KEY" > deploy_key.pem
+          chmod 600 deploy_key.pem
+          
+          # Create deployment directory
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} "mkdir -p ${{ env.DEPLOY_DIRECTORY }}"
+          
+          # Rsync source code avoiding heavy/unnecessary folders
+          rsync -avz -e 'ssh -i deploy_key.pem -o StrictHostKeyChecking=no' \
+            --exclude='.git' \
+            --exclude='frontend/node_modules' \
+            --exclude='frontend/dist' \
+            ./ root@${{ secrets.SERVER_IP }}:${{ env.DEPLOY_DIRECTORY }}
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Create environment file on server
+        run: |
+          # Write out Github Secrets as environment variables for docker-compose
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} "\
+          touch ${{ env.ENV_FILE_PATH }} && \
+          chmod 600 ${{ env.ENV_FILE_PATH }} && \
+          echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' > ${{ env.ENV_FILE_PATH }} && \
+          echo 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' >> ${{ env.ENV_FILE_PATH }} && \
+          echo 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' >> ${{ env.ENV_FILE_PATH }} && \
+          echo 'AWS_REGION=ru-central1' >> ${{ env.ENV_FILE_PATH }}"
+
+      - name: Start application with Docker Compose
+        run: |
+          # Navigate to project dir, shut down old containers, and rebuild/start new ones
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} "\
+          cd ${{ env.DEPLOY_DIRECTORY }} && \
+          docker compose down && \
+          docker compose up -d --build"
