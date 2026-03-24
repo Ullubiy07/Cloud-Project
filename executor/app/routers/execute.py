@@ -2,7 +2,7 @@ import subprocess
 
 from schemas.execute import RunRequest, RunResponse
 from manager import FileManager, Execution
-from config import *
+from config.config import *
 
 
 def run_code(request: RunRequest) -> RunResponse:
@@ -10,14 +10,14 @@ def run_code(request: RunRequest) -> RunResponse:
     res = RunResponse()
 
     try:
-        with FileManager(directory=TEST_PATH, data=res.metrics, files=request.files, language=request.language) as manager:
+        with FileManager(directory=env.TEST_PATH, data=res.metrics, files=request.files, language=request.language) as manager:
 
             with Execution("scan", res):
                 scan_process = subprocess.run(
                     SCAN_CMD,
                     capture_output=True,
                     text=True,
-                    timeout=SCAN_TIME_LIMIT,
+                    timeout=env.SCAN_TIME_LIMIT,
                     cwd=manager.base_dir
                 )
 
@@ -30,7 +30,7 @@ def run_code(request: RunRequest) -> RunResponse:
                     build_cmd(request.language, manager.build_stats),
                     capture_output=True,
                     text=True,
-                    timeout=BUILD_TIME_LIMIT,
+                    timeout=env.BUILD_TIME_LIMIT,
                     preexec_fn=set_cpu_limit,
                     cwd=manager.base_dir
                 )
@@ -45,7 +45,7 @@ def run_code(request: RunRequest) -> RunResponse:
                     input=request.stdin,
                     capture_output=True,
                     text=True,
-                    timeout=RUN_TIME_LIMIT,
+                    timeout=env.RUN_TIME_LIMIT + 0.5,
                     preexec_fn=set_cpu_limit,
                     cwd=manager.base_dir
                 )

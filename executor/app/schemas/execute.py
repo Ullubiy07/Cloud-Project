@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List
 
-from config import OUTPUT_LIMIT
+from config.config import env
 from subprocess import CompletedProcess
 
 
@@ -13,9 +13,6 @@ class File(BaseModel):
 class Flags(BaseModel):
     timeout: bool = False
     mem_out: bool = False
-    scan_error: bool = False
-    build_error: bool = False
-    run_error: bool = False
 
 
 class Metrics(BaseModel):
@@ -33,31 +30,32 @@ class RunRequest(BaseModel):
 
 
 class RunResponse(BaseModel):
-    rc: int = 1
+    status: str = "Completed"
     stdout: str = ""
     stderr: str = ""
     flags: Flags = Flags()
     metrics: Metrics = Metrics()
+    exit_code: int = 1
 
     def set_flag(self, type: str):
-        if self.rc != 0:
-            if type == "run":
-                self.flags.run_error = True
+        if self.exit_code != 0:
+            if type == "scan":
+                self.status = "Scan error"
             elif type == "build":
-                self.flags.build_error = True
-            elif type == "scan":
-                self.flags.scan_error = True
+                self.status = "Build error"
+            elif type == "run":
+                self.status = "Runtime error"
 
-    def set_error(self, message: str, type: str, rc: int):
+    def set_error(self, message: str, type: str, exit_code: int):
         self.stderr = message
-        self.rc = rc
+        self.exit_code = exit_code
         self.set_flag(type)
     
     def set_stdout(self, stdout):
-        if len(stdout) > OUTPUT_LIMIT:
-            hidden = len(stdout) - OUTPUT_LIMIT
+        if len(stdout) > env.OUTPUT_LIMIT:
+            hidden = len(stdout) - env.OUTPUT_LIMIT
             message = "char was" if hidden == 1 else "chars were"
-            stdout = stdout[:OUTPUT_LIMIT] + (f"\n[Output truncated to {OUTPUT_LIMIT} chars, "
+            stdout = stdout[:env.OUTPUT_LIMIT] + (f"\n[Output truncated to {env.OUTPUT_LIMIT} chars, "
                                               f"{hidden} {message} hidden]")
         return stdout
 
@@ -70,13 +68,13 @@ class RunResponse(BaseModel):
         self.set_error("Memory limit exceeded", type, 137)
 
     def set_output(self, process: CompletedProcess, type: str):
-        self.rc = process.returncode
+        self.exit_code = process.returncode
         self.stderr = process.stderr
         self.stdout = self.set_stdout(process.stdout)
 
         self.set_flag(type)
 
-        if self.rc == 137:
+        if self.exit_code == 137:
             self.memory_limit(type)
-        if self.rc == 143:
+        if self.exit_code == 143:
             self.time_limit(type)

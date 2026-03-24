@@ -5,7 +5,7 @@ from subprocess import TimeoutExpired
 import os
 
 from schemas.execute import File, Metrics, RunResponse
-from config import TEST_PATH, logger
+from config.config import env, logger
 
 
 class FileNameError(Exception):
@@ -55,14 +55,13 @@ class FileManager:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.data.build_time, self.data.build_memory = self.parse_stats(self.build_stats)
         self.data.run_time, self.data.run_memory = self.parse_stats(self.run_stats)
-        os.system(f"rm -rf {TEST_PATH}/*")
+        os.system(f"rm -rf {env.TEST_PATH}/*")
 
 
 class Execution:
-    def __init__(self, type: str, res: RunResponse, process=None):
+    def __init__(self, type: str, res: RunResponse):
         self.type = type
         self.res = res
-        self.proc = process
     
     def __enter__(self):
         return self

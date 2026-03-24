@@ -3,7 +3,7 @@ import httpx
 
 from schemas.cloud import Requests, CloudTriggerRequest
 from routers.execute import run_code
-from config import *
+from config.config import env, logger
 
 
 app = FastAPI(
@@ -23,7 +23,7 @@ def handle_cloud_trigger(request: CloudTriggerRequest):
 
         if body.handle == "run":
             res = run_code(body.body)
-            httpx.post(WEBHOOK_URL, json=res.dict())
+            httpx.post(env.WEBHOOK_URL, json=res.dict())
         
         if body.handle == "debug":
             return
