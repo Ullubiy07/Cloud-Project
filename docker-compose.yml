@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=postgres://user:password@db:5432/auth_db?sslmode=disable
-      - JWT_SECRET=${JWT_SECRET:-dev_secret_key}
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=3000
     depends_on:
       db:
@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=postgres://user:password@db:5432/backend_db?sslmode=disable
-      - JWT_SECRET=${JWT_SECRET:-dev_secret_key}
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=3001
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}

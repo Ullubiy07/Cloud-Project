@@ -56,6 +56,25 @@ func (h *RunHandler) extractUser(r *http.Request) (*token.Claims, error) {
 	return h.tokenService.ValidateToken(tokenString)
 }
 
+func getQueueNameForLanguage(lang string) string {
+	switch strings.ToLower(lang) {
+	case "python":
+		return "python_queue"
+	case "cpp", "cxx":
+		return "cxx_queue"
+	case "javascript", "js":
+		return "javascript_queue"
+	case "assembler", "asm":
+		return "assembler_queue"
+	case "c":
+		return "c_queue"
+	case "sql":
+		return "sql_queue"
+	default:
+		return "test_queue"
+	}
+}
+
 func (h *RunHandler) RunRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -92,7 +111,25 @@ func (h *RunHandler) RunRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.queue.SendMessage(r.Context(), runReq.ID.String()); err != nil {
+	queuePayload := struct {
+		Handle string                        `json:"handle"`
+		ID     string                        `json:"id"`
+		Body   model.CreateRunRequestPayload `json:"body"`
+	}{
+		Handle: "run",
+		ID:     runReq.ID.String(),
+		Body:   payload,
+	}
+
+	queuePayloadBytes, err := json.Marshal(queuePayload)
+	if err != nil {
+		slog.Error("failed to marshal queue payload", slog.Any("error", err))
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to prepare queue payload")
+		return
+	}
+
+	queueName := getQueueNameForLanguage(payload.Language)
+	if err := h.queue.SendMessage(r.Context(), queueName, string(queuePayloadBytes)); err != nil {
 		slog.Error("failed to enqueue run request", slog.Any("error", err))
 
 		errorMsg := "System error: failed to enqueue task"
