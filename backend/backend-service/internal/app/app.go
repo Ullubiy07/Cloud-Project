@@ -57,8 +57,8 @@ func New(cfg *config.Config) (*App, error) {
 	r.Use(middleware.Recoverer)
 
 	r.Post("/api/run", runHandler.RunRequest)
+	r.Get("/api/run/{id}", runHandler.GetRunRequest)
 	r.Get("/api/run-requests", runHandler.GetRunRequests)
-	r.Get("/api/run-requests/{id}", runHandler.GetRunRequest)
 
 	r.Post("/api/internal/runs/{id}/status", runHandler.UpdateExecutionStatus)
 
