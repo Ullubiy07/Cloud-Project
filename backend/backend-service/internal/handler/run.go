@@ -64,7 +64,7 @@ func getQueueNameForLanguage(lang string) string {
 		return "cxx_queue"
 	case "javascript", "js":
 		return "javascript_queue"
-	case "assembler", "asm":
+	case "assembler", "asm", "assembly":
 		return "assembler_queue"
 	case "c":
 		return "c_queue"
