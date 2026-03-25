@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Box, HStack, useColorMode, VStack } from "@chakra-ui/react";
 import { Editor } from "@monaco-editor/react";
-import { SNIPPETS } from "../constants";
+import { SNIPPETS, DEFAULT_FILES } from "../constants";
 import { apiRun, apiGetRun } from "../api/client";
 import Selector from "./Selector";
 import Output from "./Output";
@@ -16,7 +16,7 @@ const CodeEditor = () => {
     const [language, setLanguage] = useState("python");
     const { colorMode } = useColorMode();
     const [fontSize, setFontSize] = useState(14);
-    const [activeFile, setActiveFile] = useState({ id: 1, name: "main.py" });
+    const [activeFile, setActiveFile] = useState({ id: 1, name: DEFAULT_FILES["python"] });
     const [output, setOutput] = useState(null);
     const [loading, setLoading] = useState(false);
     const [stdin, setStdin] = useState("");
@@ -27,8 +27,7 @@ const CodeEditor = () => {
     });
 
     const [files, setFiles] = useState([
-        { id: 1, name: "main.py" },
-        { id: 2, name: "index.py" },
+        { id: 1, name: DEFAULT_FILES["python"] },
     ]);
 
     const onFontSize = (delta) => {
@@ -42,9 +41,14 @@ const CodeEditor = () => {
 
     const onSelect = (language) => {
         setLanguage(language);
+        const newName = DEFAULT_FILES[language];
+        setActiveFile(prev => ({ ...prev, name: newName }));
+        setFiles(prev => prev.map(f =>
+            f.id === activeFile.id ? { ...f, name: newName } : f
+        ));
         setFileContents(prev => ({
             ...prev,
-            [activeFile.id]: SNIPPETS[language],
+            [activeFile.id]: SNIPPETS[language] ?? "",
         }));
     };
 
