@@ -37,7 +37,7 @@ const Output = ({ output, loading }) => {
                     )}
                     {output.metrics && (
                         <Text color="gray.500" mt={2} fontSize="xs">
-                            ⏱ {output.metrics.time} · 💾 {output.metrics.phys_mem}
+                            ⏱ {output.metrics.run_time} · 💾 {output.metrics.run_memory}
                         </Text>
                     )}
                 </>
