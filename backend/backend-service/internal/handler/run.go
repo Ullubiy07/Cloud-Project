@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"backend/internal/config"
+	"backend/internal/gigachat"
 	"backend/internal/model"
 	"backend/internal/queue"
 	"backend/internal/storage"
@@ -23,16 +24,18 @@ type RunHandler struct {
 	storage      storage.Storage
 	queue        *queue.Service
 	tokenService *token.TokenService
+	gigaClient   *gigachat.Client
 	mu           sync.Mutex
 	lastRunTime  map[uuid.UUID]time.Time
 }
 
-func NewRunHandler(cfg *config.Config, store storage.Storage, qs *queue.Service, ts *token.TokenService) *RunHandler {
+func NewRunHandler(cfg *config.Config, store storage.Storage, qs *queue.Service, ts *token.TokenService, gc *gigachat.Client) *RunHandler {
 	return &RunHandler{
 		config:       cfg,
 		storage:      store,
 		queue:        qs,
 		tokenService: ts,
+		gigaClient:   gc,
 		lastRunTime:  make(map[uuid.UUID]time.Time),
 	}
 }
@@ -114,6 +117,30 @@ func (h *RunHandler) RunRequest(w http.ResponseWriter, r *http.Request) {
 		h.respondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
+
+	var codeBuilder strings.Builder
+	for _, f := range payload.Files {
+		codeBuilder.WriteString("--- File: ")
+		codeBuilder.WriteString(f.Name)
+		codeBuilder.WriteString(" ---\n")
+		codeBuilder.WriteString(f.Content)
+		codeBuilder.WriteString("\n\n")
+	}
+
+	isSafe, aiResponse, err := h.gigaClient.CheckSecurity(r.Context(), codeBuilder.String())
+	if err != nil {
+		slog.Error("failed to perform security check", slog.Any("error", err))
+		h.respondWithError(w, http.StatusInternalServerError, "Security check system unavailable")
+		return
+	}
+
+	if !isSafe {
+		slog.Warn("malicious code detected", slog.String("user", claims.UserID.String()), slog.String("ai_reason", aiResponse))
+		h.respondWithError(w, http.StatusForbidden, "Security check failed")
+		return
+	}
+
+	slog.Info("code security check passed", slog.String("user", claims.UserID.String()), slog.String("ai_reason", aiResponse))
 
 	runReq := &model.RunRequest{
 		UserID:    claims.UserID,

@@ -177,3 +177,65 @@ func (c *Client) ExplainCode(ctx context.Context, code string) (string, error) {
 
 	return chatResp.Choices[0].Message.Content, nil
 }
+
+func (c *Client) CheckSecurity(ctx context.Context, code string) (bool, string, error) {
+	if c.authKey == "" {
+		return false, "", errors.New("gigachat auth key is not configured")
+	}
+
+	token, err := c.getAccessToken(ctx)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to get gigachat access token: %w", err)
+	}
+
+	systemPrompt := `Ты — эксперт по кибербезопасности. Твоя задача: проверить исходный код на наличие зловредного поведения, направленного против инфраструктуры исполнения (VM, контейнеры, сеть, файловая система сервера).
+Ищи: попытки побега из песочницы (container escape), форк-бомбы, майнеры, обратные шеллы (reverse shells), подозрительные сетевые сканирования локальной сети, чтение системных файлов (например, /etc/shadow), несанкционированные системные вызовы.
+Игнорируй: обычные уязвимости в самом коде (XSS, SQL инъекции в коде), если они не направлены на атаку сервера исполнения. Игнорируй обычный импорт библиотек os/sys, если они используются адекватно. Игнорируй попытки чтения/записи файлов в текущей рабочей директории.
+
+Твой ответ должен строго начинаться с ключевого слова [SAFE] если код безопасен для запуска на сервере, или [MALICIOUS] если в коде есть попытка атаки на инфраструктуру.
+После этого ключевого слова на новой строке кратко объясни свое решение (почему безопасно или почему это атака).`
+
+	reqBody := chatRequest{
+		Model: "GigaChat",
+		Messages: []message{
+			{Role: "system", Content: systemPrompt},
+			{Role: "user", Content: code},
+		},
+	}
+
+	reqBytes, _ := json.Marshal(reqBody)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", chatURL, bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return false, "", err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return false, "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return false, "", fmt.Errorf("gigachat completion failed, status: %d, response: %s", resp.StatusCode, string(body))
+	}
+
+	var chatResp chatResponse
+	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
+		return false, "", err
+	}
+
+	if len(chatResp.Choices) == 0 {
+		return false, "", errors.New("empty choices in gigachat response")
+	}
+
+	content := chatResp.Choices[0].Message.Content
+	isSafe := strings.HasPrefix(strings.TrimSpace(content), "[SAFE]")
+
+	return isSafe, content, nil
+}

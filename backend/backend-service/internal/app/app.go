@@ -51,9 +51,8 @@ func New(cfg *config.Config) (*App, error) {
 
 	storageLayer := postgres.New(dbPool)
 	tokenService := token.NewTokenService(cfg.JWTSecret, "auth-service", 24*time.Hour)
-	runHandler := handler.NewRunHandler(cfg, storageLayer, queueService, tokenService)
-
 	gigaClient := gigachat.NewClient(cfg.GigaChatAuthKey)
+	runHandler := handler.NewRunHandler(cfg, storageLayer, queueService, tokenService, gigaClient)
 	explainHandler := handler.NewExplainHandler(gigaClient, tokenService)
 
 	r := chi.NewRouter()
