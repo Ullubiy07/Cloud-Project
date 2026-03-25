@@ -1,3 +1,4 @@
+const AUTH_URL = "/auth";
 const EXEC_URL = "/api";
 
 function authHeader() {
@@ -6,7 +7,7 @@ function authHeader() {
 }
 
 export async function apiLogin(username, password) {
-    const res = await fetch(`${EXEC_URL}/auth/login`, {
+    const res = await fetch(`${AUTH_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -16,7 +17,7 @@ export async function apiLogin(username, password) {
 }
 
 export async function apiRegister(username, email, password) {
-    const res = await fetch(`${EXEC_URL}/auth/register`, {
+    const res = await fetch(`${AUTH_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
