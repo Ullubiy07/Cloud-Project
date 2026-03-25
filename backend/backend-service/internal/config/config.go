@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	Port            string
-	JWTSecret       string
-	DatabaseURL     string
-	GigaChatAuthKey string
+	Port              string
+	JWTSecret         string
+	DatabaseURL       string
+	GigaChatAuthKey   string
+	InternalAPISecret string
 }
 
 func Load() (*Config, error) {
@@ -34,10 +35,16 @@ func Load() (*Config, error) {
 
 	gigaChatAuthKey := os.Getenv("GIGACHAT_AUTH_KEY")
 
+	internalAPISecret := os.Getenv("INTERNAL_API_SECRET")
+	if internalAPISecret == "" {
+		return nil, fmt.Errorf("INTERNAL_API_SECRET environment variable is required")
+	}
+
 	return &Config{
-		Port:            port,
-		JWTSecret:       jwtSecret,
-		DatabaseURL:     databaseURL,
-		GigaChatAuthKey: gigaChatAuthKey,
+		Port:              port,
+		JWTSecret:         jwtSecret,
+		DatabaseURL:       databaseURL,
+		GigaChatAuthKey:   gigaChatAuthKey,
+		InternalAPISecret: internalAPISecret,
 	}, nil
 }

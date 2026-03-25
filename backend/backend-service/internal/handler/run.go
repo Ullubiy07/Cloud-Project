@@ -258,6 +258,12 @@ func (h *RunHandler) GetRunRequest(w http.ResponseWriter, r *http.Request) {
 func (h *RunHandler) UpdateExecutionStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	secret := r.Header.Get("X-Internal-Secret")
+	if secret != h.config.InternalAPISecret {
+		h.respondWithError(w, http.StatusForbidden, "Invalid or missing internal secret")
+		return
+	}
+
 	idParam := chi.URLParam(r, "id")
 	reqID, err := uuid.Parse(idParam)
 	if err != nil {
