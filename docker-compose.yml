@@ -59,7 +59,27 @@ services:
       timeout: 5s
       retries: 5
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - auth-service
+      - backend-service
+    restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - WEBHOOK_URL=https://lnkea.ru/n8n/
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
 volumes:
+  n8n_data:
   postgres_data:
   caddy_data:
   caddy_config:

@@ -42,3 +42,11 @@ export async function apiRun(language, entryFile, files, stdin = "") {
     if (!res.ok) throw new Error("Execution failed");
     return res.json();
 }
+
+export async function apiGetRun(id) {
+    const res = await fetch(`${EXEC_URL}/run/${id}`, {
+        headers: authHeader(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch run status");
+    return res.json();
+}

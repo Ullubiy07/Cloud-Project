@@ -2,11 +2,14 @@ import { useRef, useState } from "react";
 import { Box, HStack, useColorMode, VStack } from "@chakra-ui/react";
 import { Editor } from "@monaco-editor/react";
 import { SNIPPETS } from "../constants";
-import { apiRun } from "../api/client";
+import { apiRun, apiGetRun } from "../api/client";
 import Selector from "./Selector";
 import Output from "./Output";
 import Input from "./Input";
 import Files from './Files';
+
+const POLL_INTERVAL_MS = 1500;
+const POLL_TIMEOUT_MS = 60000;
 
 const CodeEditor = () => {
     const editorRef = useRef();
@@ -62,6 +65,27 @@ const CodeEditor = () => {
         }));
     };
 
+    const pollResult = async (id) => {
+        const start = Date.now();
+
+        while (Date.now() - start < POLL_TIMEOUT_MS) {
+            await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+
+            const res = await apiGetRun(id);
+            const run = res.data;
+
+            if (run.status === "completed" || run.status === "failed") {
+                return {
+                    stdout: run.stdout ?? "",
+                    stderr: run.stderr ?? run.error_message ?? "",
+                    metrics: run.metrics,
+                };
+            }
+        }
+
+        throw new Error("Execution timed out");
+    };
+
     const onRun = async () => {
         const currentCode = editorRef.current.getValue();
         const updatedContents = {
@@ -78,12 +102,11 @@ const CodeEditor = () => {
         setOutput(null);
 
         try {
-            const result = await apiRun(
-                language,
-                activeFile.name,
-                allFiles,
-                stdin
-            );
+            const enqueued = await apiRun(language, activeFile.name, allFiles, stdin);
+            const id = enqueued.data?.id;
+            if (!id) throw new Error("No run ID returned");
+
+            const result = await pollResult(id);
             setOutput(result);
         } catch (err) {
             setOutput({ stderr: err.message });
