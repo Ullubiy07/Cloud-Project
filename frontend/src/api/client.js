@@ -72,14 +72,14 @@ export async function apiGetRun(id) {
     return res.json();
 }
 
-export async function apiExplain(code) {
+export async function apiExplain(files) {
     const res = await fetch(`${EXEC_URL}/explain`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             ...authHeader(),
         },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ files }),
     });
     if (!res.ok) throw new Error("Failed to explain code");
     return res.json();
