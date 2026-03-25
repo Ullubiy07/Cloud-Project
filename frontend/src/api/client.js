@@ -26,6 +26,26 @@ export async function apiRegister(username, email, password) {
     return res.json();
 }
 
+export async function apiRequestReset(email) {
+    const res = await fetch(`${AUTH_URL}/internal/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+    });
+    if (!res.ok) throw new Error("Request reset failed");
+    return res.json();
+}
+
+export async function apiResetPassword(token, password) {
+    const res = await fetch(`${AUTH_URL}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+    });
+    if (!res.ok) throw new Error("Reset password failed");
+    return res.json();
+}
+
 export async function apiRun(language, entryFile, files, stdin = "") {
     const res = await fetch(`${EXEC_URL}/run`, {
         method: "POST",
