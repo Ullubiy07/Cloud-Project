@@ -30,7 +30,8 @@ class RunRequest(BaseModel):
 
 
 class RunResponse(BaseModel):
-    status: str = "Internal error"
+    id: str = ""
+    status: str = "internal error"
     stdout: str = ""
     stderr: str = ""
     flags: Flags = Flags()
@@ -40,13 +41,13 @@ class RunResponse(BaseModel):
     def set_status(self, type: str):
         if self.exit_code != 0:
             if type == "scan":
-                self.status = "Scan error"
+                self.status = "scan error"
             elif type == "build":
-                self.status = "Build error"
+                self.status = "build error"
             elif type == "run":
-                self.status = "Runtime error"
+                self.status = "runtime error"
         else:
-            self.status = "Completed"
+            self.status = "completed"
 
     def set_error(self, message: str, type: str, exit_code: int):
         self.stderr = message

@@ -7,6 +7,7 @@ from schemas.execute import RunRequest
 
 
 class Requests(BaseModel):
+    id: str
     handle: str
     body: Union[RunRequest, DebugRequest]
 
