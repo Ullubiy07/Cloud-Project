@@ -60,7 +60,10 @@ export async function apiRun(language, entryFile, files, stdin = "") {
             stdin,
         }),
     });
-    if (!res.ok) throw new Error("Execution failed");
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Execution failed");
+    }
     return res.json();
 }
 
