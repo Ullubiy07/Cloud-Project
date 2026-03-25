@@ -1,0 +1,26 @@
+id: resource-exhaustion
+language: python
+severity: error
+rule:
+  any:
+    - all:
+      - kind: while_statement
+      - any:
+        - pattern: "while True:"
+        - pattern: "while 1:"
+    - all:
+      - kind: for_statement
+      - any:
+        - pattern: "for $$$X in range(999999999)"
+        - pattern: "for $$$X in range(1000000000)"
+    - all:
+      - kind: binary_operator
+      - any:
+        - pattern: "[] * 1000000"
+        - pattern: "{} * 1000000"
+    - all:
+      - kind: call
+      - any:
+        - pattern: "threading.Thread"
+        - pattern: "multiprocessing.Process"
+message: "❌ КРИТИЧНО: Потенциальное исчерпание ресурсов."

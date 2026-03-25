@@ -1,0 +1,9 @@
+id: c-dynamic-loading
+language: c
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(dlopen|dlsym|dlexec)$
+message: "❌ КРИТИЧНО: Динамическая загрузка библиотек запрещена."

@@ -1,55 +1,48 @@
-from fastapi import FastAPI
-import subprocess
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+import httpx
 
-from schema import Request, Response
-from manager import FileManager, FileNameError
-from config import *
+from schemas.cloud import Requests, CloudTriggerRequest
+from handlers.execute import run_code
+from config.config import env, logger
 
 
 app = FastAPI(
-    title="Executor",
-    # docs_url=None,
-    # redoc_url=None,
-    # openapi_url=None
+    title="Executor"
 )
 
-@app.post("/run", response_model=Response)
-def run_code(request: Request):
 
-    res = Response()
+@app.post("/preview")
+def preview(request: Requests):
+    return
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
+    logger.debug(f"422 Validation Error: {exc_str}")
+    logger.debug(f"Content that caused error: {exc.body}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors(), "body": exc.body},
+    )
+
+
+@app.post("/")
+def handle_cloud_trigger(request: CloudTriggerRequest):
     try:
-        with FileManager(directory=TEST_PATH, data=res.metrics, files=request.files, language=request.language) as manager:
-            
-            build_process = subprocess.run(
-                build_cmd(request.language, manager.build_stats),
-                capture_output=True,
-                text=True,
-                timeout=TIME_LIMIT,
-                preexec_fn=set_cpu_limit,
-                cwd=manager.base_dir
-            )
-            if build_process.returncode != 0:
-                res.set_output(build_process, "build")
-                return res
+        body = request.messages[0].details.message.body
+        id = request.messages[0].details.message.body.id
 
-            run_process = subprocess.run(
-                run_cmd(request.language, manager.run_stats, request.entry_file),
-                input=request.stdin,
-                capture_output=True,
-                text=True,
-                timeout=TIME_LIMIT,
-                preexec_fn=set_cpu_limit,
-                cwd=manager.base_dir
-            )
-            res.set_output(run_process, "run")
+        if body.handle == "run":
+            res = run_code(body.body)
+            res.id = id
+            httpx.post(f"{env.WEBHOOK_URL}/{id}/status", json=res.dict())
+        
+        if body.handle == "debug":
+            return
 
-    except subprocess.TimeoutExpired as e:
-        res.time_limit(e)
-    except FileNameError as e:
-        res.set_error(str(e), 1)
     except Exception as e:
-        res.set_error("Internal server error", 124)
-        print(e)
+        logger.debug(e)
 
-    return res

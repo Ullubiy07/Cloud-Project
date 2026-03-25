@@ -1,0 +1,14 @@
+id: dangerous-deserialization
+language: python
+severity: error
+rule:
+  any:
+    - pattern: pickle.loads($$$ARGS)
+    - pattern: pickle.load($$$ARGS)
+    - pattern: cPickle.loads($$$ARGS)
+    - pattern: cPickle.load($$$ARGS)
+    - pattern: marshal.loads($$$ARGS)
+    - pattern: marshal.load($$$ARGS)
+    - pattern: shelve.open($$$ARGS)
+    - pattern: yaml.load($$$ARGS)
+message: "❌ КРИТИЧНО: Небезопасная десериализация."

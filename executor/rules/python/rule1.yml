@@ -1,0 +1,13 @@
+id: critical-os-command-execution
+language: python
+severity: error
+rule:
+  any:
+    - pattern: os.system($$$ARGS)
+    - pattern: os.popen($$$ARGS)
+    - pattern: subprocess.run($$$ARGS)
+    - pattern: subprocess.Popen($$$ARGS)
+    - pattern: subprocess.call($$$ARGS)
+    - pattern: pty.spawn($$$ARGS)
+    - pattern: commands.getoutput($$$ARGS)
+message: "❌ КРИТИЧНО: Запуск системных команд запрещен."

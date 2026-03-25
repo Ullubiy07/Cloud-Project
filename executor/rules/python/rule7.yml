@@ -1,0 +1,6 @@
+id: base64-obfuscation
+language: python
+severity: warning
+rule:
+  pattern: base64.b64decode($$$ARGS)
+message: "⚠️ ВНИМАНИЕ: Декодирование Base64."

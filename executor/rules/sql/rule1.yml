@@ -1,0 +1,7 @@
+id: sql-no-ddl
+language: html
+severity: error
+rule:
+  kind: text
+  regex: "(?i)DROP\\s+TABLE|ALTER\\s+TABLE|TRUNCATE\\s+TABLE"
+message: "❌ ОШИБКА: Изменение структуры таблиц (DROP, ALTER, TRUNCATE) запрещено."

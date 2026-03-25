@@ -1,0 +1,14 @@
+id: bypass-via-getattr
+language: python
+severity: error
+rule:
+  any:
+    - pattern: getattr($$$ARGS)
+    - pattern: setattr($$$ARGS)
+    - pattern: delattr($$$ARGS)
+    - pattern: hasattr($$$ARGS)
+    - pattern: object.__getattribute__($$$ARGS)
+    - pattern: object.__setattr__($$$ARGS)
+    - pattern: object.__delattr__($$$ARGS)
+    - pattern: super().__getattribute__($$$ARGS)
+message: "⚠️ ОПАСНО: Манипуляция атрибутами."

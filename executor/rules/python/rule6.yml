@@ -1,0 +1,11 @@
+id: sensitive-file-access
+language: python
+severity: error
+rule:
+  any:
+    - pattern: open($FILE, $$$ARGS)
+    - pattern: os.open($FILE, $$$ARGS)
+constraints:
+  FILE:
+    regex: ".*(/etc/|/proc/|/var/|/root/|\\.ssh|\\.env|/home/|\\.aws|\\.config|\\.git/config|\\.npmrc|\\.pypirc|\\.dockercfg).*"
+message: "❌ КРИТИЧНО: Попытка доступа к системным файлам."

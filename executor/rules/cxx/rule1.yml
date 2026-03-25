@@ -1,0 +1,9 @@
+id: cpp-os-exec
+language: cpp
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(system|popen|_popen|execl|execle|execlp|execv|execve|execvp|fork|clone)$
+message: "❌ КРИТИЧНО: Запуск системных команд запрещен."

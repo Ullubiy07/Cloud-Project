@@ -1,0 +1,14 @@
+id: file-manipulation
+language: python
+severity: warning
+rule:
+  any:
+    - pattern: os.remove($$$ARGS)
+    - pattern: os.unlink($$$ARGS)
+    - pattern: os.rmdir($$$ARGS)
+    - pattern: shutil.rmtree($$$ARGS)
+    - pattern: os.chmod($$$ARGS)
+    - pattern: os.chown($$$ARGS)
+    - pattern: os.rename($$$ARGS)
+    - pattern: os.replace($$$ARGS)
+message: "⚠️ ВНИМАНИЕ: Операции с файловой системой."

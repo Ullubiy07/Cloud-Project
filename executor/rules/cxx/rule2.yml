@@ -1,0 +1,9 @@
+id: cpp-network-block
+language: cpp
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(socket|connect|bind|listen|accept|sendto|recvfrom|getaddrinfo)$
+message: "❌ ЗАПРЕЩЕНО: Работа с сетью запрещена."

@@ -1,0 +1,9 @@
+id: c-fs-access
+language: c
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(fopen|freopen|remove|rename|unlink|chmod|chown|mkdir|rmdir)$
+message: "❌ КРИТИЧНО: Прямое манипулирование файлами запрещено."

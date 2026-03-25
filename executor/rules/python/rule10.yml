@@ -1,0 +1,17 @@
+id: information-disclosure
+language: python
+severity: warning
+rule:
+  any:
+    - pattern: os.environ
+    - pattern: os.getenv($$$ARGS)
+    - pattern: platform.platform()
+    - pattern: platform.system()
+    - pattern: platform.version()
+    - pattern: platform.machine()
+    - pattern: platform.processor()
+    - pattern: platform.node()
+    - pattern: sys.version
+    - pattern: sys.executable
+    - pattern: sys.path
+message: "⚠️ ВНИМАНИЕ: Возможная утечка информации."

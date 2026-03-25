@@ -1,0 +1,10 @@
+id: fork-bomb-prevention
+language: python
+severity: error
+rule:
+  any:
+    - pattern: os.fork()
+    - pattern: "while True: os.fork()"
+    - pattern: "while 1: os.fork()"
+    - pattern: "for $$$X in range($$$Y): os.fork()"
+message: "❌ КРИТИЧНО: Обнаружена попытка создания fork-бомбы."

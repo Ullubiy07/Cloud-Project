@@ -1,0 +1,9 @@
+id: c-network-block
+language: c
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(socket|connect|bind|listen|accept|sendto|recvfrom|gethostbyname|getaddrinfo)$
+message: "❌ ЗАПРЕЩЕНО: Сетевые функции заблокированы в песочнице."

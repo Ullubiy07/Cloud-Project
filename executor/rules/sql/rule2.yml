@@ -1,0 +1,7 @@
+id: sql-no-delete
+language: html
+severity: error
+rule:
+  kind: text
+  regex: "(?i)DELETE\\s+FROM"
+message: "❌ ОШИБКА: Удаление данных (DELETE) запрещено."

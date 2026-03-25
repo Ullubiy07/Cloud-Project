@@ -1,0 +1,33 @@
+id: unauthorized-network-access
+language: python
+severity: error
+rule:
+  any:
+    - pattern: import socket
+    - pattern: import requests
+    - pattern: import urllib
+    - pattern: import urllib.request
+    - pattern: import urllib.parse
+    - pattern: import urllib.error
+    - pattern: import http
+    - pattern: import http.client
+    - pattern: import http.server
+    - pattern: import httplib
+    - pattern: import urllib2
+    - pattern: import urllib3
+    - pattern: import aiohttp
+    - pattern: import httpx
+    - pattern: import websocket
+    - pattern: import websockets
+    - pattern: import ftplib
+    - pattern: import smtplib
+    - pattern: import poplib
+    - pattern: import imaplib
+    - pattern: import telnetlib
+    - pattern: import paramiko
+    - pattern: import scapy
+    - pattern: from socket import *
+    - pattern: from requests import *
+    - pattern: from urllib import *
+    - pattern: from http import *
+message: "❌ КРИТИЧНО: Работа с сетью запрещена."

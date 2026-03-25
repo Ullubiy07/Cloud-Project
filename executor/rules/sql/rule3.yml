@@ -1,0 +1,7 @@
+id: sql-no-sys
+language: html
+severity: error
+rule:
+  kind: text
+  regex: "(?i)xp_cmdshell|GRANT\\s+|REVOKE\\s+|LOAD_FILE"
+message: "❌ КРИТИЧНО: Доступ к системным функциям или правам запрещен."

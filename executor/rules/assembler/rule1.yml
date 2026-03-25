@@ -1,0 +1,7 @@
+id: asm-no-syscall
+language: html
+severity: error
+rule:
+  kind: text
+  regex: "(?i)syscall|int\\s+0x80|sysenter"
+message: "❌ ОШИБКА: Прямые системные вызовы запрещены."

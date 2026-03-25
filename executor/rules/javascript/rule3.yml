@@ -1,0 +1,12 @@
+id: js-fs-access
+language: javascript
+severity: error
+rule:
+  any:
+    - pattern: require('fs')
+    - pattern: require('fs/promises')
+    - pattern: fs.readFile($$$)
+    - pattern: fs.writeFile($$$)
+    - pattern: fs.unlink($$$)
+    - pattern: fs.rmdir($$$)
+message: "❌ КРИТИЧНО: Доступ к файловой системе через модуль 'fs' запрещен."

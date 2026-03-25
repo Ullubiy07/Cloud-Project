@@ -1,0 +1,14 @@
+id: dangerous-dynamic-eval
+language: python
+severity: error
+rule:
+  any:
+    - pattern: eval($$$ARGS)
+    - pattern: exec($$$ARGS)
+    - pattern: compile($$$ARGS)
+    - pattern: __import__($$$ARGS)
+    - pattern: globals().get($$$ARGS)()
+    - pattern: locals().get($$$ARGS)()
+    - pattern: vars().get($$$ARGS)()
+    - pattern: getattr(__builtins__, $$$ARGS)()
+message: "❌ КРИТИЧНО: Динамическое выполнение кода."

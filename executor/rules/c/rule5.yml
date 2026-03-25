@@ -1,0 +1,9 @@
+id: c-low-level-io
+language: c
+severity: error
+rule:
+  kind: call_expression
+  has:
+    field: function
+    regex: ^(read|write|close|ioctl|syscall)$
+message: "❌ ЗАПРЕЩЕНО: Прямые системные вызовы и работа с дескрипторами запрещены."
