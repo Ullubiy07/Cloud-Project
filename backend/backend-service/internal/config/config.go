@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Port        string
-	JWTSecret   string
-	DatabaseURL string
+	Port            string
+	JWTSecret       string
+	DatabaseURL     string
+	GigaChatAuthKey string
 }
 
 func Load() (*Config, error) {
@@ -31,9 +32,12 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("DATABASE_URL environment variable is required")
 	}
 
+	gigaChatAuthKey := os.Getenv("GIGACHAT_AUTH_KEY")
+
 	return &Config{
-		Port:        port,
-		JWTSecret:   jwtSecret,
-		DatabaseURL: databaseURL,
+		Port:            port,
+		JWTSecret:       jwtSecret,
+		DatabaseURL:     databaseURL,
+		GigaChatAuthKey: gigaChatAuthKey,
 	}, nil
 }

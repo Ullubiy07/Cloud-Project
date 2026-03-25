@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"backend/internal/config"
+	"backend/internal/gigachat"
 	"backend/internal/handler"
 	"backend/internal/queue"
 	"backend/internal/storage/postgres"
@@ -52,6 +53,9 @@ func New(cfg *config.Config) (*App, error) {
 	tokenService := token.NewTokenService(cfg.JWTSecret, "auth-service", 24*time.Hour)
 	runHandler := handler.NewRunHandler(cfg, storageLayer, queueService, tokenService)
 
+	gigaClient := gigachat.NewClient(cfg.GigaChatAuthKey)
+	explainHandler := handler.NewExplainHandler(gigaClient, tokenService)
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -59,6 +63,8 @@ func New(cfg *config.Config) (*App, error) {
 	r.Post("/api/run", runHandler.RunRequest)
 	r.Get("/api/run/{id}", runHandler.GetRunRequest)
 	r.Get("/api/run-requests", runHandler.GetRunRequests)
+
+	r.Post("/api/explain", explainHandler.ExplainCode)
 
 	r.Post("/api/internal/runs/{id}/status", runHandler.UpdateExecutionStatus)
 
