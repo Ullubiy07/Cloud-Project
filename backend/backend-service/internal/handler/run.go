@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"backend/internal/config"
 	"backend/internal/model"
@@ -21,6 +23,8 @@ type RunHandler struct {
 	storage      storage.Storage
 	queue        *queue.Service
 	tokenService *token.TokenService
+	mu           sync.Mutex
+	lastRunTime  map[uuid.UUID]time.Time
 }
 
 func NewRunHandler(cfg *config.Config, store storage.Storage, qs *queue.Service, ts *token.TokenService) *RunHandler {
@@ -29,6 +33,7 @@ func NewRunHandler(cfg *config.Config, store storage.Storage, qs *queue.Service,
 		storage:      store,
 		queue:        qs,
 		tokenService: ts,
+		lastRunTime:  make(map[uuid.UUID]time.Time),
 	}
 }
 
@@ -60,7 +65,7 @@ func getQueueNameForLanguage(lang string) string {
 	switch strings.ToLower(lang) {
 	case "python":
 		return "python_queue"
-	case "cpp", "cxx":
+	case "cpp", "cxx", "c++":
 		return "cxx_queue"
 	case "javascript", "js":
 		return "javascript_queue"
@@ -83,6 +88,20 @@ func (h *RunHandler) RunRequest(w http.ResponseWriter, r *http.Request) {
 		h.respondWithError(w, http.StatusUnauthorized, "Invalid or missing token")
 		return
 	}
+
+	h.mu.Lock()
+	lastTime, exists := h.lastRunTime[claims.UserID]
+	if exists && time.Since(lastTime) < time.Second {
+		h.mu.Unlock()
+		w.WriteHeader(http.StatusTooManyRequests)
+		json.NewEncoder(w).Encode(StandardResponse{
+			Status:  "failed",
+			Message: "Rate limit exceeded: maximum 1 request per second",
+		})
+		return
+	}
+	h.lastRunTime[claims.UserID] = time.Now()
+	h.mu.Unlock()
 
 	var payload model.CreateRunRequestPayload
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
