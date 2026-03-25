@@ -83,7 +83,10 @@ const CodeEditor = ({ user }) => {
             await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
             const res = await apiGetRun(id);
             const run = res.data;
-            if (run.status === "completed" || run.status === "failed") {
+            const isDone = run.status === "completed" || run.status === "failed"
+                || run.exit_code !== null && run.exit_code !== undefined
+                || run.flags?.timeout;
+            if (isDone) {
                 return {
                     stdout: run.stdout ?? "",
                     stderr: run.stderr ?? run.error_message ?? "",
@@ -130,7 +133,7 @@ const CodeEditor = ({ user }) => {
         setExplainOpen(true);
         setExplainLoading(true);
         try {
-            const res = await apiExplain(code);
+            const res = await apiExplain([{ name: activeFile.name, content: code }]);
             setExplanation(res.data?.explanation ?? "No explanation received.");
         } catch (err) {
             setExplanation("Failed to get explanation. Please try again.");
