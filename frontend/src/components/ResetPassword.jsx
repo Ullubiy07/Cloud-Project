@@ -4,16 +4,17 @@ import {
     ModalCloseButton, Button, Input, FormControl, FormLabel,
     VStack, Text, useToast, FormErrorMessage,
 } from "@chakra-ui/react";
- 
+import { apiRequestReset } from "../api/client";
+
 const N8N_WEBHOOK_URL = "/n8n/webhook/password-reset";
- 
+
 const ResetPassword = ({ isOpen, onClose }) => {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
     const [errors, setErrors] = useState({});
     const toast = useToast();
- 
+
     const validate = () => {
         const e = {};
         if (!email.trim()) e.email = "Email is required";
@@ -21,20 +22,22 @@ const ResetPassword = ({ isOpen, onClose }) => {
         setErrors(e);
         return Object.keys(e).length === 0;
     };
- 
+
     const handleReset = async () => {
         if (!validate()) return;
         setLoading(true);
         try {
-            const resetToken = crypto.randomUUID();
+            const data = await apiRequestReset(email);
+            const resetToken = data.token;
+
             const resetLink = `${window.location.origin}/reset-password?token=${resetToken}`;
-            const username = email.split("@")[0];
- 
+
             await fetch(N8N_WEBHOOK_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, username, reset_link: resetLink }),
+                body: JSON.stringify({ email, reset_link: resetLink }),
             });
+
             setSent(true);
         } catch (err) {
             toast({ title: "Something went wrong. Try again.", status: "error", duration: 3000, isClosable: true });
@@ -42,14 +45,14 @@ const ResetPassword = ({ isOpen, onClose }) => {
             setLoading(false);
         }
     };
- 
+
     const handleClose = () => {
         setSent(false);
         setEmail("");
         setErrors({});
         onClose();
     };
- 
+
     return (
         <Modal isOpen={isOpen} onClose={handleClose} isCentered>
             <ModalOverlay />
@@ -95,5 +98,5 @@ const ResetPassword = ({ isOpen, onClose }) => {
         </Modal>
     );
 };
- 
+
 export default ResetPassword;
