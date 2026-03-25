@@ -181,7 +181,7 @@ const CodeEditor = ({ user }) => {
                     }}
                 />
 
-                <Box flex={1}>
+                <Box flex={2}>
                     <Editor
                         height="100vh"
                         theme={colorMode === "dark" ? "vs-dark" : "light"}
@@ -197,7 +197,7 @@ const CodeEditor = ({ user }) => {
                     />
                 </Box>
 
-                <VStack w="50%" spacing={2} alignItems="stretch" height="75vh">
+                <VStack w="40%" spacing={2} alignItems="stretch" height="75vh">
                     <Input stdin={stdin} onStdin={setStdin} />
                     <Output output={output} loading={loading} />
                 </VStack>
