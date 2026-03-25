@@ -50,9 +50,9 @@ func New(cfg *config.Config) (*App, error) {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Post("/api/auth/register", authHandler.Register)
-	r.Post("/api/auth/login", authHandler.Login)
-	r.Post("/api/auth/reset-password", authHandler.ResetPassword)
+	r.Post("/auth/register", authHandler.Register)
+	r.Post("/auth/login", authHandler.Login)
+	r.Post("/auth/reset-password", authHandler.ResetPassword)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
