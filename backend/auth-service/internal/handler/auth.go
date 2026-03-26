@@ -1,10 +1,8 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/mail"
 	"time"
@@ -219,22 +217,6 @@ func (h *AuthHandler) InternalReset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webhookURL := "http://n8n:5678/n8n/webhook/password-reset"
-	resetLink := fmt.Sprintf("https://lnkea.ru/reset-password?token=%s", tokenStr)
-
-	webhookPayload := map[string]string{
-		"email":      req.Email,
-		"reset_link": resetLink,
-	}
-
-	payloadBytes, err := json.Marshal(webhookPayload)
-	if err == nil {
-		resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
-		if err == nil {
-			defer resp.Body.Close()
-		}
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	json.NewEncoder(w).Encode(TokenResponse{Token: tokenStr})
 }

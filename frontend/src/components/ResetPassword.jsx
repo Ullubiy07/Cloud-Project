@@ -6,6 +6,8 @@ import {
 } from "@chakra-ui/react";
 import { apiRequestReset } from "../api/client";
 
+const N8N_WEBHOOK_URL = "/n8n/webhook/password-reset";
+
 const ResetPassword = ({ isOpen, onClose }) => {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
@@ -25,7 +27,17 @@ const ResetPassword = ({ isOpen, onClose }) => {
         if (!validate()) return;
         setLoading(true);
         try {
-            await apiRequestReset(email);
+            const data = await apiRequestReset(email);
+            const resetToken = data.token;
+
+            const resetLink = `${window.location.origin}/reset-password?token=${resetToken}`;
+
+            await fetch(N8N_WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, reset_link: resetLink }),
+            });
+
             setSent(true);
         } catch (err) {
             toast({ title: "Something went wrong. Try again.", status: "error", duration: 3000, isClosable: true });
