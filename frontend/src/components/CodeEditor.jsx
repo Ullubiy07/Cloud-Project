@@ -154,7 +154,7 @@ const CodeEditor = ({ user }) => {
                 onExplain={onExplain}
                 user={user}
             />
-            <HStack spacing={4} alignItems="flex-start">
+            <HStack spacing={4} alignItems="flex-start" overflow="hidden">
                 <Files
                     activeFile={activeFile}
                     onSelect={onFileSelect}
@@ -181,7 +181,7 @@ const CodeEditor = ({ user }) => {
                     }}
                 />
 
-                <Box flex={2}>
+                <Box flex={1} minW={0}>
                     <Editor
                         height="100vh"
                         theme={colorMode === "dark" ? "vs-dark" : "light"}
@@ -197,7 +197,7 @@ const CodeEditor = ({ user }) => {
                     />
                 </Box>
 
-                <VStack w="40%" spacing={2} alignItems="stretch" height="75vh">
+                <VStack w="400px" flexShrink={0} spacing={2} alignItems="stretch" height="75vh">
                     <Input stdin={stdin} onStdin={setStdin} />
                     <Output output={output} loading={loading} />
                 </VStack>
