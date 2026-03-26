@@ -38,7 +38,7 @@ def handle_cloud_trigger(request: CloudTriggerRequest):
         if body.handle == "run":
             res = run_code(body.body)
             res.id = id
-            httpx.post(f"{env.WEBHOOK_URL}/{id}/status", json=res.dict())
+            httpx.post(f"{env.WEBHOOK_URL}/{id}/status", json=res.dict(), headers={"X-Internal-Secret": env.INTERNAL_SECRET})
         
         if body.handle == "debug":
             return

@@ -28,9 +28,18 @@ class Settings:
     OUTPUT_LIMIT     = int(os.getenv("OUTPUT_LIMIT"))
     TEST_PATH        = os.getenv("TEST_PATH")
     WEBHOOK_URL      = os.getenv("WEBHOOK_URL")
+    INTERNAL_SECRET  = os.getenv("INTERNAL_SECRET")
 
 env = Settings()
 
+os.environ.pop("SCAN_TIME_LIMIT", None)
+os.environ.pop("BUILD_TIME_LIMIT", None)
+os.environ.pop("RUN_TIME_LIMIT", None)
+os.environ.pop("MEM_LIMIT", None)
+os.environ.pop("OUTPUT_LIMIT", None)
+os.environ.pop("TEST_PATH", None)
+os.environ.pop("WEBHOOK_URL", None)
+os.environ.pop("INTERNAL_SECRET", None)
 
 # command
 with open("./config/languages.yml", "r") as file:

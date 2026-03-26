@@ -23,12 +23,12 @@ go:
   build: "go build -ldflags='-s -w' -gcflags='all=-N -l' -o main *.go"
   run: "./main"
 
-assembler:
+assembly:
   type: "compile"
   build: >
-    bash -c 'for f in *.asm; do nasm -f elf32 "$f" -o "${f%.asm}.o"; done 
-    && gcc -m32 -c /include/macro.c -o __macro__.o 
-    && gcc -m32 -static -no-pie *.o -o main'
+    bash -c 'for f in *.asm; do nasm -f elf64 "$f" -o "${f%.asm}.o"; done 
+    && gcc -m64 -c /include/macro.c -o __macro__.o 
+    && gcc -m64 -static -no-pie *.o -o main'
   run: "./main"
 
 sql:
