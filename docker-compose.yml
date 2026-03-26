@@ -75,6 +75,7 @@ services:
     environment:
       - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
+      - N8N_PATH=/n8n/
       - WEBHOOK_URL=https://lnkea.ru/n8n/
     volumes:
       - n8n_data:/home/node/.n8n
