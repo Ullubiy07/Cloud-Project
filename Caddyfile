@@ -8,14 +8,7 @@ lnkea.ru {
     }
     
     handle /n8n* {
-        reverse_proxy n8n:5678
-    }
-
-    handle /static/* {
-        reverse_proxy n8n:5678
-    }
-    
-    handle /rest/* {
+        uri strip_prefix /n8n
         reverse_proxy n8n:5678
     }
 
