@@ -27,7 +27,7 @@ export async function apiRegister(username, email, password) {
 }
 
 export async function apiRequestReset(email) {
-    const res = await fetch(`${AUTH_URL}/request-reset`, {
+    const res = await fetch(`${AUTH_URL}/reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
