@@ -31,7 +31,7 @@
 * Использование serverless подхода для запуска кода;
 
 ## Диаграмма
-<img width="1413" height="808" alt="image" src="https://github.com/user-attachments/assets/a2f659db-b49b-47d9-b6c8-8dcd904bc8ec" />
+![Архитектура](./images/diagram.png)
 
 В системе участвуют следующие основные компоненты:
 
